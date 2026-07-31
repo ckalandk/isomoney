@@ -1,14 +1,9 @@
-from typing import Protocol, Literal
+from typing import Protocol
 from isomoney import Currency
 from decimal import Decimal
-from dataclasses import dataclass
+from .formatspec import FormatSpec
 
-@dataclass(frozen=True, slots=True)
-class FormatSpec:
-    compact: bool
-    accounting: bool
-    group_separator:bool = True
-    ccy_display: Literal["h", "s", "n"] = "s"
+__all__ = ["CcyFormatter"]
 
 class _SupportsMoneyFormatting(Protocol):
 

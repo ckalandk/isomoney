@@ -1,4 +1,4 @@
-from .protocols import CcyFormatter, FormatSpec
+from ..protocols import CcyFormatter, FormatSpec
 from decimal import Decimal
 from babel.numbers import (
     format_decimal, 

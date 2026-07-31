@@ -4,7 +4,7 @@ from typing import Protocol, Callable, Literal
 from dataclasses import dataclass
 import re
 from .currency import Currency
-from isomoney.formatters import _SupportsMoneyFormatting, FormatSpec, CcyFormatter, BabelFormatter
+from isomoney.formatting import _SupportsMoneyFormatting, FormatSpec, CcyFormatter, BabelFormatter
 
 class MoneyFormat:
 
