@@ -1,0 +1,83 @@
+[project]
+name = "isomoney"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "babel>=2.18.0",
+]
+
+[dependency-groups]
+dev = [
+    "hypothesis>=6.161.8",
+    "mypy>=2.3.0",
+    "pre-commit>=4.6.1",
+    "pytest>=9.1.1",
+    "pytest-cov>=7.1.0",
+    "ruff>=0.16.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/isomoney"]
+
+[project.scripts]
+ccy = "isomoney.cli:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+# --- Test Coverage Configuration
+[tool.coverage.run]
+source = ["src/isomoney"]
+omit = [
+    "src/isomoney/iso4217.py",
+    "src/isomoney/cli.py"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+# --- Ruff Configuration ---
+
+[tool.ruff]
+line-length = 88
+target-version = "py314"
+exclude = [
+    ".git",
+    ".ruff_cache",
+    ".venv",
+    "build",
+    "dist",
+]
+
+[tool.ruff.lint]
+exclude = ["scripts"]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort (automatically sorts your imports!)
+    "B",   # flake8-bugbear (catches common bugs)
+    "UP",  # pyupgrade (upgrades syntax to newer Python versions)
+]
+
+ignore = []
+fixable = ["ALL"]
+unfixable = []
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+
+[tool.mypy]
+files = ["src/isomoney"]
+exclude = [
+    "src/isomoney/iso4217.py"
+    ]
+strict = true
+no_implicit_reexport = true
