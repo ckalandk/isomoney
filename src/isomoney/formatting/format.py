@@ -1,30 +1,35 @@
 from __future__ import annotations
-from decimal import Decimal, ROUND_HALF_UP
-from typing import Protocol, Callable, Literal
-from dataclasses import dataclass
+from decimal import Decimal
 import re
-from .currency import Currency
-from isomoney.formatting import _SupportsMoneyFormatting, FormatSpec, CcyFormatter, BabelFormatter
+from .protocols import CcyFormatter, _SupportMoneyOperation
+from .formatspec import FormatSpec
+from .std_formatter import StdFormatter
+from isomoney.rounding import RoundingPolicy
 
+_map_symbol = {
+    "h": "hidden",
+    "i": "iso",
+    "n": "name"
+}
 class MoneyFormat:
 
     _FORMAT_SPEC_PATTERN = re.compile(
-       r"^(?P<display>[hin])?(?P<compact>c)?(?P<accounting>a)?(?P<separator>g)?(?P<rest>.*)$"
+       r"^(?P<display>[hin])?(?P<compact>c)?(?P<group_sep>u)?(?P<accounting>a)?(?P<rest>.*)$"
     )
 
-    def __init__(self, 
+    def __init__(self,
                  *, 
                  precision: int = 2, 
-                 rounding: str = ROUND_HALF_UP,
+                 rounding: RoundingPolicy = RoundingPolicy.HALF_UP,
                  omit_trailing_zeros = True,
-                 ccy_format: CcyFormatter | None = None
+                 formatter: CcyFormatter | None = None
                  ):
         self.precision = precision
         self.rounding = rounding
         self.omit_trailing_zeros = omit_trailing_zeros
-        self.ccy_format = ccy_format if ccy_format else BabelFormatter('USD', 'en_US')
+        self.ccy_format = formatter if formatter else StdFormatter()
 
-    def _parse(self, fmt_spec: str):
+    def _parse(self, fmt_spec: str) -> tuple[FormatSpec, str]:
         match = self._FORMAT_SPEC_PATTERN.fullmatch(fmt_spec)
         if match is None:
             raise ValueError(
@@ -34,10 +39,12 @@ class MoneyFormat:
                 compact=match["compact"] is not None,
                 accounting=match["accounting"] is not None,
                 ccy_display=(
-                    match["display"]
-                    if match["display"] else ""),
+                    _map_symbol.get(match["display"], "symbol")
+                ),
+                group_separator=match["group_sep"] is None
                 ), match["rest"]
 
-    def format(self, money: _SupportsMoneyFormatting, format_spec: str) -> str:
+    def format(self, money: _SupportMoneyOperation, format_spec: str) -> str:
         context, rest = self._parse(format_spec)
-        arg = self.ccy_format.format(money.to_decimal(), self.ccy_format.currency, context)
+        arg = self.ccy_format.format(money.to_decimal(), money.currency.ccy_code, context)
+        return format(arg, rest)

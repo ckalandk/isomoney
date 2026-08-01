@@ -1,7 +1,5 @@
 from dataclasses import astuple
-
 import pytest
-
 from isomoney import Ccy, Currency
 
 

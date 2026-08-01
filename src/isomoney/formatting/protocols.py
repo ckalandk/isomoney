@@ -1,22 +1,21 @@
 from typing import Protocol
-from isomoney import Currency
 from decimal import Decimal
 from .formatspec import FormatSpec
 
 __all__ = ["CcyFormatter"]
 
-class _SupportsMoneyFormatting(Protocol):
+class _SupportMoneyOperation(Protocol):
 
     @property
-    def currency(self) -> Currency:
+    def currency(self) -> str:
         ...
 
     def to_decimal(self) -> Decimal:
         ...
 
+        
 class CcyFormatter(Protocol):
     locale: str
-    currency: str
 
-    def format(self, amount: Decimal, ctx: FormatSpec) -> str:
+    def format(self, amount: Decimal, currency: str, ctx: FormatSpec) -> str:
         ...

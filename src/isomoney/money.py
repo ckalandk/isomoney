@@ -2,6 +2,8 @@ from decimal import Decimal
 from functools import total_ordering
 from typing import Self, final
 from .currency import Ccy, Currency
+from isomoney.formatting import format, FormatSpec
+from isomoney.formatting import format as money_format
 
 __all__ = ["Money"]
 
@@ -199,4 +201,28 @@ class Money:
         return f"{self.to_decimal()} {self.currency.ccy_code}"
 
     def __format__(self, format_spec: str) -> str:
-        return repr(self)
+        """
+        Format the monetary amount.
+
+        Format specification grammar
+        ----------------------------
+
+        money-format ::= money-spec string-format
+
+        money-spec ::= [display] [compact] [accounting]
+
+        display ::= h | i | n
+        compact ::= c
+        accounting ::= a
+
+        string-format ::= Python's standard string format specification
+
+        Examples
+        --------
+        >>> f"{money:}"
+        >>> f"{money:h}"
+        >>> f"{money:hc}"
+        >>> f"{money:ia}"
+        >>> f"{money:hc>20}"
+        """
+        return money_format(self, format_spec)

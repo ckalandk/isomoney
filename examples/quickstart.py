@@ -28,3 +28,4 @@ print("Currency name:", total.currency.ccy_name)
 # String representations.
 print(total)
 print(repr(total))
+print(f"{total:h}")

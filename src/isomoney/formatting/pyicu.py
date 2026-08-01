@@ -1,6 +1,6 @@
-from isomoney.protocols import CcyFormatter
+from .protocols import CcyFormatter
 from isomoney.rounding import RoundingPolicy
-from isomoney.formatspec import FormatSpec
+from .formatspec import FormatSpec
 import icu
 import decimal
 
@@ -86,20 +86,20 @@ def _build_icu_currency_formatter(
     
 
 class IcuFormatter(CcyFormatter):
-    def __init__(self, currency: str, locale: str) -> None:
-        self.currency = currency
-        self.locale = locale
+    def __init__(self, locale: str|None = None) -> None:
+        self.locale = locale if locale else str(icu.Locale.getDefault())
 
     def format(
         self, 
-        amount: decimal.Decimal, 
+        amount: decimal.Decimal,
+        currency:str, 
         ctx: FormatSpec, 
         precision:int = 2, 
         rounding: str = RoundingPolicy.HALF_EVEN, 
         omit_trailing_zeros:bool = False
     ) -> str:
         formatter = _build_icu_currency_formatter(
-            self.currency,
+            currency,
             self.locale,
             ctx,
             precision,
