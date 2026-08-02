@@ -1,10 +1,21 @@
+"""
+Default formatting configuration.
+
+This module provides the global formatter used by Money.__format__ and
+implements an API heavily inspired by Python's logging module.
+
+No, I didn't honor the tradition by naming the formatter accessor `getFormatter()`.
+PEP 8 won.:-)
+"""
+
 from collections.abc import Callable
 from typing import Any, TypeVar
 
 from isomoney.rounding import RoundingPolicy
 
+from .base_formatter import CcyFormatter
 from .moneyformat import MoneyFormat
-from .protocols import CcyFormatter, _SupportMoneyOperation
+from .protocols import _SupportMoneyOperation
 from .std_formatter import StdFormatter
 
 
@@ -13,8 +24,8 @@ def _create_icu_formatter() -> CcyFormatter:
         from .pyicu import IcuFormatter
 
         return IcuFormatter()
-    except ImportError as exc:
-        raise ImportError("The 'icu' backend requires the PyICU package.") from exc
+    except ImportError:
+        raise ImportError("The 'icu' backend requires the PyICU package.") from None
 
 
 def _create_babel_formatter() -> CcyFormatter:
@@ -38,10 +49,11 @@ def format(money: _SupportMoneyOperation, format_spec: str) -> str:
 
 
 def basicConfig(
-    *, locale:str,
-    precision: int=2,
-    rounding: RoundingPolicy=RoundingPolicy.HALF_EVEN,
-    omit_trailing_zeros: bool=True
+    *,
+    locale: str,
+    precision: int = 2,
+    rounding: RoundingPolicy = RoundingPolicy.HALF_EVEN,
+    omit_trailing_zeros: bool = True,
 ) -> None:
     _default.backend_formatter.locale = locale
     _default.precision = precision
@@ -54,14 +66,25 @@ def get_formatter() -> CcyFormatter:
 
 
 def available_backends() -> list[str]:
-    return list(_BACKENDS.keys())
+    return list(sorted(_BACKENDS))
 
 
 def current_backend() -> str:
     return _default.backend_formatter.__class__.__name__
 
 
-def use_backend(backend_formatter: CcyFormatter) -> None:
+def use_backend(backend_formatter: CcyFormatter | str) -> None:
+    if isinstance(backend_formatter, str):
+        try:
+            _default.backend_formatter = _BACKENDS[backend_formatter]()
+        except KeyError as exc:
+            raise ValueError(
+                f"Unknown formatter backend {backend_formatter!r}. "
+                f"Available backends: {', '.join(available_backends())}"
+            ) from exc
+    if not isinstance(backend_formatter, CcyFormatter):
+        raise TypeError("backend_formatter must be a CcyFormatter instance.")
+
     _default.backend_formatter = backend_formatter
 
 

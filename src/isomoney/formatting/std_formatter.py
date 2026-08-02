@@ -5,8 +5,8 @@ from isomoney.currency import Ccy
 from isomoney.exceptions import InvalidFormatSpecError
 from isomoney.rounding import RoundingPolicy, as_decimal_rounding
 
-from .formatspec import Display, FormatSpec
-from .protocols import CcyFormatter
+from .base_formatter import CcyFormatter
+from .formatspec import FormatSpec
 
 __all__ = ["StdFormatter"]
 
@@ -43,31 +43,19 @@ def _get_currency_symbol(currency: str, display_option: str) -> str:
 
 
 class StdFormatter(CcyFormatter):
-    def __init__(self, locale: str | None = None) -> None:
-        self._locale = locale if locale else ""
-        self.ctx = FormatSpec(ccy_display="iso")
+    def __init__(self, locale: str = "") -> None:
+        super().__init__(locale)
+        self._default_spec = FormatSpec(ccy_display="iso")
 
     @property
     def locale(self) -> str:
-        return self._locale
+        return super().locale
 
     @locale.setter
     def locale(self, value: str) -> None:
-        self._locale = value
-
-    def configure(
-        self,
-        *,
-        compact: bool,
-        accounting: bool,
-        group_separator: bool,
-        ccy_display: Display,
-    ) -> None:
-        self.ctx = FormatSpec(
-            compact=compact,
-            accounting=accounting,
-            group_separator=group_separator,
-            ccy_display=ccy_display,
+        raise NotImplementedError(
+            "StdFormatter does not support locale-aware formatting. "
+            "Use BabelFormatter or IcuFormatter instead."
         )
 
     def format(

@@ -1,7 +1,8 @@
 from decimal import Decimal
 
 from isomoney import Ccy, Money
-from isomoney.formatting import FormatSpec, MoneyFormat
+from isomoney.formatting import MoneyFormat
+from isomoney.formatting.formatspec import FormatSpec
 from isomoney.formatting.std_formatter import StdFormatter
 
 fmt = MoneyFormat(formatter=StdFormatter())

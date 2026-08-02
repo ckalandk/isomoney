@@ -6,8 +6,9 @@ from typing import Literal
 from isomoney.exceptions import InvalidFormatSpecError
 from isomoney.rounding import RoundingPolicy
 
+from .base_formatter import CcyFormatter
 from .formatspec import FormatSpec
-from .protocols import CcyFormatter, _SupportMoneyOperation
+from .protocols import _SupportMoneyOperation
 from .std_formatter import StdFormatter
 
 type _CurrencyDisplay = Literal[
@@ -55,7 +56,9 @@ class MoneyFormat:
             compact=match["compact"] is not None,
             accounting=match["accounting"] is not None,
             ccy_display=(
-                "symbol" if match["display"] is None else _map_symbol[match["display"]]
+                self.backend_formatter._default_spec.ccy_display
+                if match["display"] is None
+                else _map_symbol[match["display"]]
             ),
             group_separator=match["group_sep"] is None,
         ), match["rest"]
@@ -66,7 +69,7 @@ class MoneyFormat:
             str_money = self.backend_formatter.format(
                 money.to_decimal(),
                 money.currency.ccy_code,
-                self.backend_formatter.ctx,
+                self.backend_formatter._default_spec,
                 precision=(
                     self.precision
                     if self.precision is not None

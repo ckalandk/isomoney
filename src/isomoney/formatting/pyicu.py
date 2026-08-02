@@ -1,12 +1,12 @@
 import decimal
 
-import icu # pyright: ignore[reportMissingImports]
+import icu  # pyright: ignore[reportMissingImports]
 
+from isomoney.exceptions import InvalidFormatSpecError
 from isomoney.rounding import RoundingPolicy
 
-from .formatspec import Display, FormatSpec
-from .protocols import CcyFormatter
-from isomoney.exceptions import InvalidFormatSpecError
+from .base_formatter import CcyFormatter
+from .formatspec import FormatSpec
 
 _icu_rounding_map = {
     RoundingPolicy.CEILING: icu.DecimalFormat.kRoundCeiling,  #
@@ -90,7 +90,7 @@ def _build_icu_currency_formatter(
 
 
 class IcuFormatter(CcyFormatter):
-    def __init__(self, locale: str | None = None) -> None:
+    def __init__(self, locale: str = "") -> None:
         self._locale = locale if locale else str(icu.Locale.getDefault())
         self.ctx = FormatSpec(
             compact=False, accounting=False, group_separator=True, ccy_display="symbol"
@@ -103,21 +103,6 @@ class IcuFormatter(CcyFormatter):
     @locale.setter
     def locale(self, value: str) -> None:
         self._locale = value
-
-    def configure(
-        self,
-        *,
-        compact: bool,
-        accounting: bool,
-        group_separator: bool,
-        ccy_display: Display,
-    ) -> None:
-        self.ctx = FormatSpec(
-            compact=compact,
-            accounting=accounting,
-            group_separator=group_separator,
-            ccy_display=ccy_display,
-        )
 
     def format(
         self,
