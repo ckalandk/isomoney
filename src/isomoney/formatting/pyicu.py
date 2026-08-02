@@ -1,6 +1,6 @@
 import decimal
 
-import icu
+import icu # pyright: ignore[reportMissingImports]
 
 from isomoney.rounding import RoundingPolicy
 
