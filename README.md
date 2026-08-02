@@ -13,7 +13,7 @@ The project aims to provide immutable money objects, ISO 4217 currency support, 
 * Precise decimal arithmetic
 * Locale-aware currency formatting
 * Pluggable formatting backends
-* Extensible formatting specification language
+* Custom formatting specification
 
 ## Status
 
