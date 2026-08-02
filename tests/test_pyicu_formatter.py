@@ -1,25 +1,45 @@
 import pytest
-from isomoney.formatting import IcuFormatter, FormatSpec
+from isomoney.formatting.pyicu import IcuFormatter
+from isomoney.formatting import FormatSpec
 from decimal import Decimal
 from isomoney import InvalidFormatSpecError
 from isomoney.rounding import RoundingPolicy
+from functools import partial
+
+
 
 def normalize_space(s: str) -> str:
-    """Helper to convert ICU non-breaking spaces into regular spaces for easier assertions."""
-    return s.replace('\xa0', ' ').replace('\u202f', ' ').strip()
+    """Helper to convert ICU non-breaking spaces into regular spaces."""
+    return s.replace('\xa0', ' ').replace('\u202f', ' ')
 
 
 class TestIcuFormatter:
     
     @pytest.fixture
     def usd_formatter(self):
-        return IcuFormatter(locale="en_US")
+        fmt = IcuFormatter(locale="en_US")
+        _format = partial(
+            fmt.format, 
+            precision=2, 
+            rounding=RoundingPolicy.HALF_EVEN, 
+            omit_trailing_zeros=False
+        )
+        fmt.format = _format  # type: ignore
+        return fmt
         
     @pytest.fixture
     def eur_formatter_fr(self):
-        return IcuFormatter(locale="fr_FR")
+        fmt = IcuFormatter(locale="fr_FR")
+        _format = partial(
+            fmt.format,
+            precision=2,
+            rounding=RoundingPolicy.HALF_EVEN,
+            omit_trailing_zeros=False
+        )
+        fmt.format = _format  # type: ignore
+        return fmt
 
-    # --- 1. Basic Currency Display Tests ---
+    # Basic Currency Display Tests
     
     @pytest.mark.parametrize("display, amount, expected", [
         ("symbol", Decimal("1234.56"), "$1,234.56"),
@@ -33,7 +53,7 @@ class TestIcuFormatter:
         assert normalize_space(result) == expected
 
     def test_invalid_display_width_raises_error(self, usd_formatter):
-        ctx = FormatSpec(ccy_display="invalid_type")
+        ctx = FormatSpec(ccy_display="invalid_type") # type: ignore
         with pytest.raises(AssertionError):
             usd_formatter.format(Decimal("100"), "USD", ctx)
 
@@ -42,7 +62,7 @@ class TestIcuFormatter:
         with pytest.raises(ValueError):
             usd_formatter.format(Decimal("-100"), "USD", ctx)
 
-    # --- 2. Accounting Sign Tests ---
+    # Accounting Sign Tests
     
     @pytest.mark.parametrize("amount, accounting, expected", [
         (Decimal("-1234.56"), False, "-$1,234.56"),  # Standard Negative
@@ -54,7 +74,7 @@ class TestIcuFormatter:
         result = usd_formatter.format(amount, "USD", ctx)
         assert normalize_space(result) == expected
 
-    # --- 3. Compact Notation Tests ---
+    # Compact Notation Tests
     
     @pytest.mark.parametrize("amount, expected", [
         (Decimal("1500"), "$1.5K"),
@@ -77,7 +97,7 @@ class TestIcuFormatter:
         # Without the workaround, this would typically render as -$2.5M
         assert normalize_space(result) == "($2.5M)"
 
-    # --- 4. Precision and Trailing Zeros ---
+    # Precision and Trailing Zeros
     
     @pytest.mark.parametrize("amount, precision, omit_zeros, expected", [
         (Decimal("12.50"), 2, False, "$12.50"), # Fixed precision
@@ -91,7 +111,7 @@ class TestIcuFormatter:
         result = usd_formatter.format(amount, "USD", ctx, precision=precision, omit_trailing_zeros=omit_zeros)
         assert normalize_space(result) == expected
 
-    # --- 5. Grouping Separators ---
+    # Grouping Separators
     
     @pytest.mark.parametrize("group_sep, expected", [
         (True, "$1,234,567.89"),
@@ -102,7 +122,7 @@ class TestIcuFormatter:
         result = usd_formatter.format(Decimal("1234567.89"), "USD", ctx)
         assert normalize_space(result) == expected
 
-    # --- 6. Rounding Policies ---
+    # Rounding Policies
     
     @pytest.mark.parametrize("amount, policy, expected", [
         (Decimal("12.345"), RoundingPolicy.DOWN, "$12.34"),      # Truncate
@@ -119,10 +139,9 @@ class TestIcuFormatter:
     def test_invalid_rounding_policy_raises(self, usd_formatter):
         ctx = FormatSpec()
         with pytest.raises(AssertionError): 
-            # Forcing an invalid mapping
             usd_formatter.format(Decimal("100"), "USD", ctx, rounding="NON_EXISTENT")
 
-    # --- 7. Cross-Locale Verification ---
+    # Cross-Locale Verification using French Locale
     
     def test_french_locale_formatting(self, eur_formatter_fr):
         """Ensures that layout/sign configurations respect the locale's native positioning."""
@@ -142,3 +161,13 @@ class TestIcuFormatter:
         ctx_comp = FormatSpec(accounting=True, compact=True)
         res_comp = eur_formatter_fr.format(Decimal("-1500000"),"EUR", ctx_comp, precision=1)
         assert normalize_space(res_comp) == "(1,5 M €)"
+
+        # compact with negative amount andhidden symbol
+        ctx_comp_hidden = FormatSpec(accounting=True, compact=True, ccy_display="hidden")
+        res_comp_hidden = eur_formatter_fr.format(Decimal("-1500000000"),"EUR", ctx_comp_hidden, precision=1)
+        assert normalize_space(res_comp_hidden) == "(1,5 Md)"
+
+        # compact with positive amount andhidden symbol
+        ctx_comp_hidden = FormatSpec(accounting=True, compact=True, ccy_display="hidden")
+        res_comp_hidden = eur_formatter_fr.format(Decimal("1500000000"),"EUR", ctx_comp_hidden, precision=1)
+        assert normalize_space(res_comp_hidden) == "1,5 Md"

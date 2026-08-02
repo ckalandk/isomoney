@@ -1,15 +1,11 @@
 from decimal import Decimal
-from isomoney import Ccy, Money
+from isomoney import Money, Ccy, Currency
+from isomoney.formatting import MoneyFormat, FormatSpec
+from isomoney.formatting.std_formatter import StdFormatter
 
-from isomoney.formatting import IcuFormatter, FormatSpec
-from isomoney.rounding import RoundingPolicy
 
+fmt = MoneyFormat(formatter=StdFormatter())
+ctx = FormatSpec(compact=False, accounting=False, ccy_display="iso", group_separator=True)
+mny = Money.from_major(Decimal("-1234567.89"), Ccy.USD)
 
-policy = RoundingPolicy.DOWN
-
-fmt = IcuFormatter("en_US")
-
-ctx = FormatSpec(compact=True, accounting=False,
-                 group_separator=True, ccy_display="symbol")
-result = fmt.format(Decimal("-2940050299"), currency="USD", ctx=ctx, omit_trailing_zeros=True, precision=2, rounding=policy)
-print(result)
+print(fmt.format(mny, "iu"))  # Output: 1,234,567.89 USD

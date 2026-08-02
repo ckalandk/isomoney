@@ -1,6 +1,6 @@
 from .protocols import CcyFormatter
 from isomoney.rounding import RoundingPolicy
-from .formatspec import FormatSpec
+from .formatspec import Display, FormatSpec
 import icu
 import decimal
 
@@ -87,16 +87,46 @@ def _build_icu_currency_formatter(
 
 class IcuFormatter(CcyFormatter):
     def __init__(self, locale: str|None = None) -> None:
-        self.locale = locale if locale else str(icu.Locale.getDefault())
+        self._locale = locale if locale else str(icu.Locale.getDefault())
+        self.ctx = FormatSpec(
+            compact=False,
+            accounting=False,
+            group_separator=True,
+            ccy_display="symbol"
+        )
+
+    @property
+    def locale(self) -> str:
+        return self._locale
+
+    @locale.setter
+    def locale(self, value: str) -> None:
+        self._locale = value
+
+    def configure(
+            self, 
+            *, 
+            compact: bool,
+            accounting: bool,
+            group_separator: bool,
+            ccy_display: Display
+        ) -> None:
+        self.ctx = FormatSpec(
+            compact=compact,
+            accounting=accounting,
+            group_separator=group_separator,
+            ccy_display=ccy_display
+        )
 
     def format(
         self, 
         amount: decimal.Decimal,
         currency:str, 
         ctx: FormatSpec, 
-        precision:int = 2, 
-        rounding: str = RoundingPolicy.HALF_EVEN, 
-        omit_trailing_zeros:bool = False
+        *,
+        precision:int, 
+        rounding: RoundingPolicy, 
+        omit_trailing_zeros:bool
     ) -> str:
         formatter = _build_icu_currency_formatter(
             currency,
@@ -109,9 +139,13 @@ class IcuFormatter(CcyFormatter):
         if ctx.accounting and ctx.compact and amount < 0:
             # ICU/CLDR does not define accounting formatting for compact notation.
             # We emulate it by formatting the absolute value and surrounding it
-            # with parentheses.
+            # with parentheses. we strip the result to avoid extra spaces that may arise 
+            # when the currency symbol is hidden
+            # TODO: This needs to be extensively tested across locales to ensure it behaves as expected.
             positive_string = formatter.formatDecimal(str(abs(amount)).encode('utf-8'))
-            return f"({positive_string})"
-        return formatter.formatDecimal(str(amount).encode('utf-8'))
+            return f"({positive_string.strip()})"
+        # The returned formatted string i stripped from leading/trailing whitespace
+        # to avoid issues with hidden currency symbols and compact formatting.
+        return formatter.formatDecimal(str(amount).encode('utf-8')).strip()
 
         

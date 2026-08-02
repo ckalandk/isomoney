@@ -1,5 +1,6 @@
 from .currency import Ccy, Currency
 from .money import Money
+from . import formatting
 from .exceptions import (
     IsoMoneyError,
     InvalidFormatSpecError,
@@ -14,5 +15,6 @@ __all__ = [
     "CurrencyMismatchError",
     "Currency",
     "Ccy", 
-    "Money" 
+    "Money",
+    "formatting",
 ]

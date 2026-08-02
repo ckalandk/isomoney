@@ -1,7 +1,7 @@
 import decimal
 import pytest
 
-from isomoney.rounding import RoundingPolicy, to_decimal
+from isomoney.rounding import RoundingPolicy, as_decimal_rounding
 
 
 @pytest.mark.parametrize(
@@ -17,7 +17,7 @@ from isomoney.rounding import RoundingPolicy, to_decimal
     ],
 )
 def test_to_decimal(policy, expected):
-    assert to_decimal(policy) == expected
+    assert as_decimal_rounding(policy) == expected
 
 
 @pytest.mark.parametrize(
@@ -31,4 +31,4 @@ def test_to_decimal(policy, expected):
 )
 def test_to_decimal_unsupported(policy):
     with pytest.raises(NotImplementedError):
-        to_decimal(policy)
+        as_decimal_rounding(policy)

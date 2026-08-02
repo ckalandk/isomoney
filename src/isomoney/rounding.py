@@ -15,7 +15,7 @@ class RoundingPolicy(Enum):
     UNNECESSARY = auto()
 
 
-def to_decimal(policy: RoundingPolicy):
+def as_decimal_rounding(policy: RoundingPolicy) -> str:
     _decimal_map = {
         RoundingPolicy.CEILING: decimal.ROUND_CEILING,
         RoundingPolicy.FLOOR: decimal.ROUND_FLOOR,

@@ -1,3 +1,5 @@
+![Isomoney Logo](./assets/logo3.svg)
+
 # isomoney
 
 **isomoney** is a Python library for representing and formatting money and currencies in a predictable, type-safe, and ISO-compliant way.

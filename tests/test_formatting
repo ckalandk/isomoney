@@ -1,0 +1,54 @@
+# pyright: reportGeneralTypeIssues=false
+# mypy: ignore-errors
+
+from isomoney import formatting, Money
+from isomoney.formatting import CcyFormatter, FormatSpec, use_backend
+
+class RecordingFormatter: # type: ignore
+    def __init__(self):
+        self.calls = []
+
+    @property
+    def locale(self):
+        return None
+
+    @locale.setter
+    def locale(self, value):
+        pass
+
+    def format(
+        self,
+        amount,
+        currency,
+        ctx,
+        *,
+        precision,
+        rounding,
+        omit_trailing_zeros,
+    ):
+        self.calls.append(
+            {
+                "amount": amount,
+                "currency": currency,
+                "ctx": ctx,
+                "precision": precision,
+                "rounding": rounding,
+                "omit_trailing_zeros": omit_trailing_zeros,
+            }
+        )
+        return "dummy"
+
+def test_money_dunder_format(monkeypatch):
+    formatter = RecordingFormatter()
+
+    formatting.use_backend(formatter) # type: ignore
+
+    money = Money.from_major(12.34, "USD")
+
+    assert format(money, "hcu") == "dummy"
+
+    ctx = formatter.calls[0]["ctx"]
+
+    assert ctx.compact
+    assert not ctx.group_separator
+    assert ctx.ccy_display == "hidden"

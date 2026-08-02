@@ -1,27 +1,11 @@
-from decimal import Decimal
+from decimal import Decimal, localcontext
 from functools import total_ordering
 from typing import Self, final
 from .currency import Ccy, Currency
-from isomoney.formatting import format, FormatSpec
 from isomoney.formatting import format as money_format
+from ._decimal import _decimal_places
 
 __all__ = ["Money"]
-
-
-def _decimal_places(x: Decimal) -> int:
-    digits = x.as_tuple().digits
-    exponent = x.as_tuple().exponent
-
-    assert isinstance(exponent, int) #Shut up type checker
-    if exponent >= 0:
-        return 0
-
-    fractional_digits = digits[exponent:]
-    counter = abs(exponent)
-    while counter >= 0 and fractional_digits[counter - 1] == 0:
-        counter -= 1
-
-    return counter
 
 
 @total_ordering
@@ -192,10 +176,10 @@ class Money:
         else:
             exponent = Decimal(f"1e-{mn_unit}")
         ret = Decimal(self._amount) * exponent
-        return ret.quantize(exponent)
+        return ret
 
     def __repr__(self) -> str:
-        return f"Money(amount={self._amount}, currency={self.currency})"
+        return f"Money(amount={self.to_decimal()}, currency='{self.currency.ccy_code}')"
 
     def __str__(self) -> str:
         return f"{self.to_decimal()} {self.currency.ccy_code}"
@@ -209,16 +193,45 @@ class Money:
 
         money-format ::= money-spec string-format
 
-        money-spec ::= [display] [compact] [accounting]
+        money-spec ::= [display] [compact] [accounting] [ungroup]
 
         display ::= h | i | n
         compact ::= c
         accounting ::= a
+        ungroup ::= u
 
-        string-format ::= Python's standard string format specification
+        Display options
+        ---------------
+
+        h
+            Hide the currency.
+
+        i
+            Display the ISO 4217 currency code.
+
+        n
+            Display the currency name.
+
+        c
+            Use compact notation (for example, ``1.2M``).
+
+        a
+            Display negative amounts using accounting notation
+            (for example, ``(123.45)`` instead of ``-123.45``).
+
+        u
+            Disable digit grouping (for example, ``1000000`` instead of
+            ``1,000,000``).
+
+        string-format
+        -------------
+
+        Python's standard string format specification. It is applied after the
+        money-specific options.
 
         Examples
         --------
+
         >>> f"{money:}"
         >>> f"{money:h}"
         >>> f"{money:hc}"
