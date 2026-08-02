@@ -1,21 +1,21 @@
-from .formatspec import FormatSpec
 from ._default import (
-    format, 
-    basicConfig, 
-    use_backend, 
-    get_formatter, 
-    available_backends, 
+    available_backends,
+    basicConfig,
     current_backend,
-    register_backend,
+    format,
+    get_formatter,
     register,
+    register_backend,
+    use_backend,
 )
-from .protocols import CcyFormatter
+from .formatspec import FormatSpec
 from .moneyformat import MoneyFormat
+from .protocols import CcyFormatter
 
 __all__ = [
-    "moneyformat", 
-    "basicConfig", 
-    "FormatSpec", 
+    "moneyformat",
+    "basicConfig",
+    "FormatSpec",
     "CcyFormatter",
     "MoneyFormat",
     "format",

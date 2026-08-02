@@ -1,4 +1,5 @@
 import decimal
+
 import pytest
 
 from isomoney.rounding import RoundingPolicy, as_decimal_rounding

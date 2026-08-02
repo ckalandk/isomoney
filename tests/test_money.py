@@ -341,10 +341,7 @@ def test_money_to_decimal(money_, expected):
 @given(amount=st.integers(), ccy=ccy_code())
 def test_money_repr(amount, ccy):
     mny = Money(amount, currency=Currency(ccy))
-    assert (
-        repr(mny)
-        == f"Money(amount={mny.to_decimal()}, currency='{ccy.ccy_code}')"
-    )
+    assert repr(mny) == f"Money(amount={mny.to_decimal()}, currency='{ccy.ccy_code}')"
 
 
 @given(amount=st.integers(), ccy=ccy_code())

@@ -1,11 +1,12 @@
-from .protocols import CcyFormatter
-from isomoney.rounding import RoundingPolicy, as_decimal_rounding
-from isomoney.exceptions import InvalidFormatSpecError
-from isomoney.currency import Ccy
-from .formatspec import FormatSpec, Display, _is_display
 from decimal import Decimal
-from isomoney._decimal import _decimal_places
 
+from isomoney._decimal import _decimal_places
+from isomoney.currency import Ccy
+from isomoney.exceptions import InvalidFormatSpecError
+from isomoney.rounding import RoundingPolicy, as_decimal_rounding
+
+from .formatspec import Display, FormatSpec
+from .protocols import CcyFormatter
 
 __all__ = ["StdFormatter"]
 
@@ -30,7 +31,7 @@ def _get_currency_symbol(currency: str, display_option: str) -> str:
     _map_display = {
         "iso": Ccy[currency].ccy_code,
         "name": Ccy[currency].ccy_name,
-        "hidden": ""
+        "hidden": "",
     }
     try:
         symbol = _map_display[display_option]
@@ -40,52 +41,58 @@ def _get_currency_symbol(currency: str, display_option: str) -> str:
             f"Invalid currency display option: {display_option}. "
         ) from None
 
-    
+
 class StdFormatter(CcyFormatter):
     def __init__(self, locale: str | None = None) -> None:
-        self.locale = locale if locale else ""
+        self._locale = locale if locale else ""
         self.ctx = FormatSpec(
-            compact=False,
-            accounting=False,
-            group_separator=True,
-            ccy_display="iso"
+            compact=False, accounting=False, group_separator=True, ccy_display="iso"
         )
 
+    @property
+    def locale(self) -> str:
+        return self._locale
+
+    @locale.setter
+    def locale(self, value: str) -> None:
+        self._locale = value
+
     def configure(
-            self, 
-            *, 
-            compact: bool,
-            accounting: bool,
-            group_separator: bool,
-            ccy_display: Display
-        ) -> None:
+        self,
+        *,
+        compact: bool,
+        accounting: bool,
+        group_separator: bool,
+        ccy_display: Display,
+    ) -> None:
         self.ctx = FormatSpec(
             compact=compact,
             accounting=accounting,
             group_separator=group_separator,
-            ccy_display=ccy_display
+            ccy_display=ccy_display,
         )
+
     def format(
-        self, 
+        self,
         amount: Decimal,
-        currency:str, 
-        ctx: FormatSpec, 
+        currency: str,
+        ctx: FormatSpec,
         *,
-        precision:int, 
-        rounding: RoundingPolicy, 
-        omit_trailing_zeros:bool
+        precision: int,
+        rounding: RoundingPolicy,
+        omit_trailing_zeros: bool,
     ) -> str:
         rnd_plcy = as_decimal_rounding(rounding)
         if ctx.ccy_display == "symbol":
             raise InvalidFormatSpecError(
-                f"{type(self).__name__} doesn't support symbol currency display." 
-                 "Use IcuFormatter or BabelFormatter instead."
+                f"{type(self).__name__} doesn't support symbol currency display."
+                "Use IcuFormatter or BabelFormatter instead."
             )
         symbol = _get_currency_symbol(currency, ctx.ccy_display)
         suffix = ""
         if ctx.compact:
             amount, suffix = _format_compact_decimal(amount)
-            amount = amount.quantize(Decimal(f"1.{'0'*precision}"), rounding=rnd_plcy)
+            amount = amount.quantize(Decimal(f"1.{'0' * precision}"), rounding=rnd_plcy)
             if omit_trailing_zeros and _decimal_places(amount) > 0:
                 amount = amount.normalize()
 

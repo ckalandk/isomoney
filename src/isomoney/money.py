@@ -1,9 +1,11 @@
-from decimal import Decimal, localcontext
+from decimal import Decimal
 from functools import total_ordering
 from typing import Self, final
-from .currency import Ccy, Currency
+
 from isomoney.formatting import format as money_format
+
 from ._decimal import _decimal_places
+from .currency import Ccy, Currency
 
 __all__ = ["Money"]
 

@@ -1,5 +1,6 @@
 # exceptions.py
 
+
 class IsoMoneyError(Exception):
     """Base exception for all isomoney errors."""
 

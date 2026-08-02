@@ -79,8 +79,12 @@ skip-magic-trailing-comma = false
 
 [tool.mypy]
 files = ["src/isomoney"]
-exclude = [
-    "src/isomoney/iso4217.py"
-    ]
 strict = true
 no_implicit_reexport = true
+
+[[tool.mypy.overrides]]
+module = [
+    "icu",
+    "icu.*"
+]
+ignore_missing_imports = true

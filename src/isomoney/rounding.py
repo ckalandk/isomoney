@@ -1,5 +1,6 @@
-from enum import Enum, auto
 import decimal
+from enum import Enum, auto
+
 
 class RoundingPolicy(Enum):
     CEILING = auto()
@@ -10,7 +11,7 @@ class RoundingPolicy(Enum):
     HALF_DOWN = auto()
     HALF_UP = auto()
     HALF_ODD = auto()
-    HALF_CEILING = auto() 
+    HALF_CEILING = auto()
     HALF_FLOOR = auto()
     UNNECESSARY = auto()
 
@@ -30,5 +31,4 @@ def as_decimal_rounding(policy: RoundingPolicy) -> str:
     except KeyError:
         raise NotImplementedError(
             f"{policy.name} is not supported by the decimal backend."
-        )
-
+        ) from None

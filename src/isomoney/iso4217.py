@@ -192,7 +192,9 @@ class Ccy(Enum):
     XPT = ("XPT", "Platinum", 0, 962)
     XAG = ("XAG", "Silver", 0, 961)
 
-    def __init__(self, ccy_code, ccy_name, minor_units, ccy_num_code):
+    def __init__(
+        self, ccy_code: str, ccy_name: str, minor_units: int, ccy_num_code: int
+    ):
         self.ccy_code = ccy_code
         self.ccy_name = ccy_name
         self.minor_units = minor_units
