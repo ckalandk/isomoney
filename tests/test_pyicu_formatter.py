@@ -1,4 +1,5 @@
 import pytest
+icu = pytest.importorskip("icu")
 from isomoney.formatting.pyicu import IcuFormatter
 from isomoney.formatting import FormatSpec
 from decimal import Decimal

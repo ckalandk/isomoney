@@ -197,6 +197,9 @@ source = { editable = "." }
 babel = [
     { name = "babel" },
 ]
+pyicu = [
+    { name = "pyicu", marker = "sys_platform != 'win32'" },
+]
 
 [package.dev-dependencies]
 dev = [
@@ -209,8 +212,11 @@ dev = [
 ]
 
 [package.metadata]
-requires-dist = [{ name = "babel", marker = "extra == 'babel'", specifier = ">=2.18.0" }]
-provides-extras = ["babel"]
+requires-dist = [
+    { name = "babel", marker = "extra == 'babel'", specifier = ">=2.18.0" },
+    { name = "pyicu", marker = "sys_platform != 'win32' and extra == 'pyicu'", specifier = ">=2.16.2" },
+]
+provides-extras = ["babel", "pyicu"]
 
 [package.metadata.requires-dev]
 dev = [
@@ -366,6 +372,12 @@ sdist = { url = "https://files.pythonhosted.org/packages/c3/b2/bc9c9196916376152
 wheels = [
     { url = "https://files.pythonhosted.org/packages/f4/7e/a72dd26f3b0f4f2bf1dd8923c85f7ceb43172af56d63c7383eb62b332364/pygments-2.20.0-py3-none-any.whl", hash = "sha256:81a9e26dd42fd28a23a2d169d86d7ac03b46e2f8b59ed4698fb4785f946d0176", size = 1231151, upload-time = "2026-03-29T13:29:30.038Z" },
 ]
+
+[[package]]
+name = "pyicu"
+version = "2.16.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/b7/d5/354eb1bf84dcf4ab0bfa46f0620ecf68fe313bb082c26872ceb7a5021f94/pyicu-2.16.2.tar.gz", hash = "sha256:006d51e24b5ec76df6ec2130f3dde269c51db8b8cfebb7d45a427dde0d10aa52", size = 268223, upload-time = "2026-03-20T21:58:30.794Z" }
 
 [[package]]
 name = "pytest"
