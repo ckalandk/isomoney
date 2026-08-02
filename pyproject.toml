@@ -4,9 +4,14 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.14"
-dependencies = [
+dependencies = []
+
+[project.optional-dependencies]
+babel = [
     "babel>=2.18.0",
-    "pyicu>=2.16.2",
+]
+pyicu = [
+    "pyicu>=2.16.2; sys_platform != 'win32'",
 ]
 
 [dependency-groups]
