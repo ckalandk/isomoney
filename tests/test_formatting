@@ -1,12 +1,16 @@
 # pyright: reportGeneralTypeIssues=false
 # mypy: ignore-errors
-
 from isomoney import formatting, Money
 from isomoney.formatting import CcyFormatter, FormatSpec, use_backend
+from isomoney.formatting.formatspec import Display
+from isomoney.rounding import RoundingPolicy
+import pytest
+
 
 class RecordingFormatter: # type: ignore
     def __init__(self):
         self.calls = []
+        self.ctx = FormatSpec()
 
     @property
     def locale(self):
@@ -16,6 +20,20 @@ class RecordingFormatter: # type: ignore
     def locale(self, value):
         pass
 
+    def configure(
+            self,
+            *,
+            compact: bool,
+            accounting: bool,
+            group_separator: bool,
+            ccy_display: Display,
+        ) -> None:
+            self.ctx = FormatSpec(
+                compact=compact,
+                accounting=accounting,
+                group_separator=group_separator,
+                ccy_display=ccy_display,
+            )
     def format(
         self,
         amount,
@@ -38,17 +56,32 @@ class RecordingFormatter: # type: ignore
         )
         return "dummy"
 
-def test_money_dunder_format(monkeypatch):
+
+@pytest.mark.parametrize(
+    "fmt_spec,expected_ctx",[
+        pytest.param(
+            "hcau", ("hidden", True, True, False)
+        )
+    ]
+)
+def test_money_dunder_format(fmt_spec, expected_ctx):
     formatter = RecordingFormatter()
-
+    formatting.basicConfig(
+        locale="fr_FR",
+        precision=5,
+        rounding=RoundingPolicy.DOWN,
+        omit_trailing_zeros=False
+    )
     formatting.use_backend(formatter) # type: ignore
-
     money = Money.from_major(12.34, "USD")
 
-    assert format(money, "hcu") == "dummy"
+    assert format(money, fmt_spec) == "dummy"
 
     ctx = formatter.calls[0]["ctx"]
 
     assert ctx.compact
     assert not ctx.group_separator
     assert ctx.ccy_display == "hidden"
+
+def test_money_dunder_format_with_empty_spec(monkeypatch):
+    assert False, "This test is a placeholder and should be implemented to test the behavior of Money.__format__ with an empty format specifier."

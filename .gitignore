@@ -14,6 +14,7 @@ htmlcov/
 .mypy_cache
 .hypothesis
 .coverage
+.tox/
 
 # Virtual environments
 .venv

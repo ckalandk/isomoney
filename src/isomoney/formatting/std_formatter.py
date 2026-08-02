@@ -45,9 +45,7 @@ def _get_currency_symbol(currency: str, display_option: str) -> str:
 class StdFormatter(CcyFormatter):
     def __init__(self, locale: str | None = None) -> None:
         self._locale = locale if locale else ""
-        self.ctx = FormatSpec(
-            compact=False, accounting=False, group_separator=True, ccy_display="iso"
-        )
+        self.ctx = FormatSpec(ccy_display="iso")
 
     @property
     def locale(self) -> str:

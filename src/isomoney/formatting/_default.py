@@ -38,7 +38,10 @@ def format(money: _SupportMoneyOperation, format_spec: str) -> str:
 
 
 def basicConfig(
-    *, locale: str, precision: int, rounding: RoundingPolicy, omit_trailing_zeros: bool
+    *, locale:str,
+    precision: int=2,
+    rounding: RoundingPolicy=RoundingPolicy.HALF_EVEN,
+    omit_trailing_zeros: bool=True
 ) -> None:
     _default.backend_formatter.locale = locale
     _default.precision = precision

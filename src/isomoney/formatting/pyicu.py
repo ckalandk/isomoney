@@ -6,6 +6,7 @@ from isomoney.rounding import RoundingPolicy
 
 from .formatspec import Display, FormatSpec
 from .protocols import CcyFormatter
+from isomoney.exceptions import InvalidFormatSpecError
 
 _icu_rounding_map = {
     RoundingPolicy.CEILING: icu.DecimalFormat.kRoundCeiling,  #
@@ -34,7 +35,9 @@ def _build_icu_currency_formatter(
     Returns an ICU NumberFormatter configured for specific financial layouts.
     """
     if ctx.ccy_display == "name" and ctx.accounting:
-        raise ValueError()
+        raise InvalidFormatSpecError(
+            "Accounting format is not supported with currency name display."
+        )
 
     # Common Formatter Setup
     formatter = icu.NumberFormatter.withLocale(icu.Locale(locale)).unit(
