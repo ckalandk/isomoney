@@ -50,12 +50,13 @@ def format(money: _SupportMoneyOperation, format_spec: str) -> str:
 
 def basicConfig(
     *,
-    locale: str,
+    locale: str | None = None,
     precision: int = 2,
     rounding: RoundingPolicy = RoundingPolicy.HALF_EVEN,
     omit_trailing_zeros: bool = True,
 ) -> None:
-    _default.backend_formatter.locale = locale
+    if locale is not None:
+        _default.backend_formatter.locale = locale
     _default.precision = precision
     _default.rounding = rounding
     _default.omit_trailing_zeros = omit_trailing_zeros

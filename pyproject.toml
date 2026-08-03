@@ -1,8 +1,13 @@
 [project]
 name = "isomoney"
-version = "0.1.0"
-description = "Add your description here"
+version = "0.5.0"
+description = "An ISO compliant money and currency library"
 readme = "README.md"
+license = "MIT"
+authors = [
+    { name = "Khaled Kessoum" }
+]
+
 requires-python = ">=3.14"
 dependencies = []
 
@@ -35,7 +40,7 @@ packages = ["src/isomoney"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 
-# --- Test Coverage Configuration
+# Test Coverage Configuration
 [tool.coverage.run]
 source = ["src/isomoney"]
 omit = [
@@ -45,7 +50,7 @@ omit = [
 [tool.coverage.report]
 show_missing = true
 skip_covered = true
-# --- Ruff Configuration ---
+# Ruff Configuration
 
 [tool.ruff]
 line-length = 88

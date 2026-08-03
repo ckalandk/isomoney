@@ -7,7 +7,7 @@ from .exceptions import (
 )
 from .money import Money
 
-__version__ = "0.1.0-beta"
+__version__ = "0.5.0"
 
 __all__ = [
     "IsoMoneyError",
