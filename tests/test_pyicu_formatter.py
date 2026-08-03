@@ -1,12 +1,14 @@
-import pytest
-
-icu = pytest.importorskip("icu")
 from decimal import Decimal
 from functools import partial
 
-from isomoney.formatting import FormatSpec
+import pytest
+
+from isomoney.exceptions import InvalidFormatSpecError
+from isomoney.formatting.formatspec import FormatSpec
 from isomoney.formatting.pyicu import IcuFormatter
 from isomoney.rounding import RoundingPolicy
+
+icu = pytest.importorskip("icu")
 
 
 def normalize_space(s: str) -> str:
@@ -57,7 +59,7 @@ class TestIcuFormatter:
 
     def test_invalid_display_width_raises_error(self, usd_formatter):
         ctx = FormatSpec(ccy_display="invalid_type")  # type: ignore
-        with pytest.raises(AssertionError):
+        with pytest.raises(InvalidFormatSpecError):
             usd_formatter.format(Decimal("100"), "USD", ctx)
 
     def test_name_and_accounting_raises_value_error(self, usd_formatter):
@@ -97,7 +99,10 @@ class TestIcuFormatter:
         assert normalize_space(result) == expected
 
     def test_compact_accounting_negative_workaround(self, usd_formatter):
-        """Tests the specific hack ensuring CLDR supports compact + accounting for negatives"""
+        """
+        Tests the specific hack ensuring CLDR supports
+        compact + accounting for negatives
+        """
         ctx = FormatSpec(compact=True, accounting=True)
         amount = Decimal("-2500000")
 
@@ -178,7 +183,10 @@ class TestIcuFormatter:
     # Cross-Locale Verification using French Locale
 
     def test_french_locale_formatting(self, eur_formatter_fr):
-        """Ensures that layout/sign configurations respect the locale's native positioning."""
+        """
+        Ensures that layout/sign configurations respect
+        the locale's native positioning.
+        """
 
         # Standard
         ctx = FormatSpec(group_separator=True)

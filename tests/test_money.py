@@ -5,6 +5,7 @@ from hypothesis import given
 from hypothesis import strategies as st
 
 from isomoney import Ccy, Currency, Money
+from isomoney.exceptions import CurrencyMismatchError
 
 
 @pytest.fixture
@@ -119,7 +120,10 @@ def test_from_major_rejects_numbers_with_more_then_minor_unit_decimals(
     _minor_unit = Currency.of(currency).minor_units
     with pytest.raises(ValueError) as exc_info:
         Money.from_major(amount, currency)
-    assert str(exc_info.value) == f'"{currency}" support only {_minor_unit} minor units'
+    assert (
+        str(exc_info.value)
+        == f"'{currency}' supports maximum of {_minor_unit} minor units(decimals)"
+    )
 
 
 @pytest.mark.parametrize(
@@ -214,7 +218,8 @@ def test_money_comparison_not_implemented_for_non_money(money):
 def test_money_comparison_raises_when_operands_have_different_currencies(money):
     other = money(499, "EUR")
     with pytest.raises(
-        ValueError, match="Cannot compare money values with different currencies"
+        CurrencyMismatchError,
+        match="Cannot compare money values with different currencies",
     ):
         _ = money() < other
 
@@ -261,7 +266,8 @@ def test_money_add_raises_when_operand_have_different_currencies(money):
     left = money(100, "USD")
     right = money(200, "EUR")
     with pytest.raises(
-        ValueError, match="Cannot add money amounts with different currencies."
+        CurrencyMismatchError,
+        match="Cannot add money amounts with different currencies.",
     ):
         _ = left + right
 

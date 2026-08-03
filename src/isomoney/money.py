@@ -6,6 +6,7 @@ from isomoney.formatting import format as money_format
 
 from ._decimal import _decimal_places
 from .currency import Ccy, Currency
+from .exceptions import CurrencyMismatchError
 from .rounding import RoundingPolicy
 
 __all__ = ["Money"]
@@ -104,8 +105,8 @@ class Money:
         exponent = _decimal_places(amount)
         if exponent > currency.minor_units:
             raise ValueError(
-                f"'{currency.ccy_code}' support maximum of "
-                "{currency.minor_units} minor units(decimals)'"
+                f"'{currency.ccy_code}' supports maximum of "
+                f"{currency.minor_units} minor units(decimals)"
             )
 
     @property
@@ -148,14 +149,18 @@ class Money:
             return NotImplemented
 
         if self.currency != other.currency:
-            raise ValueError("Cannot compare money values with different currencies")
+            raise CurrencyMismatchError(
+                "Cannot compare money values with different currencies"
+            )
         return self._amount < other._amount
 
     def __add__(self, other: object) -> Money:
         if not isinstance(other, Money):
             return NotImplemented
         if self.currency != other.currency:
-            raise ValueError("Cannot add money amounts with different currencies.")
+            raise CurrencyMismatchError(
+                "Cannot add money amounts with different currencies."
+            )
         return Money(
             self._amount + other._amount,
             currency=self.currency,
