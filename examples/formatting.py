@@ -6,4 +6,4 @@ formatting.basicConfig(precision=2, omit_trailing_zeros=False)
 
 mny = Money.from_major(Decimal("-12345670000000"), Ccy.USD)
 
-print(f"{mny:hca}")
+print(f"{mny!r:>80}")

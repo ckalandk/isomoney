@@ -6,6 +6,7 @@ from isomoney.formatting import format as money_format
 
 from ._decimal import _decimal_places
 from .currency import Ccy, Currency
+from .rounding import RoundingPolicy
 
 __all__ = ["Money"]
 
@@ -50,7 +51,13 @@ class Money:
         raise AttributeError(f"{type(self).__name__} instances are immutable")
 
     @classmethod
-    def from_major(cls, amount: Decimal | float, currency: Ccy | str) -> Self:
+    def from_major(
+        cls,
+        amount: Decimal | float,
+        currency: Ccy | str,
+        *,
+        rounding: RoundingPolicy | None = None,
+    ) -> Self:
         """
         Construct a Money instance from an amount expressed in major units.
 
@@ -61,7 +68,9 @@ class Money:
         currency : Ccy | str
             Either a member of the ``Ccy`` enumeration or a three-letter ISO 4217
             currency code.
-
+        rounding: RoundingPolicy | None:
+            The rounding policy if the decimal/float has more decimals then
+            the currency supports
         Returns
         -------
         Money
@@ -70,14 +79,17 @@ class Money:
         Raises
         ------
         ValueError If the amount contains more fractional digits than the currency
-        supports or if the amount is NaN or infinite.
+        supports and a the rounding policy is not supplied
+        or if the amount is NaN or infinite.
 
         Examples
         --------
         >>> Money.from_major(Decimal("29.34"), "USD")
-        Money(amount=2934, currency=Currency(ccy='USD'))
+        Money(amount=2934, currency='USD')
+        >>> Money.from_major(Decimal("29.345", "USD", rounding=RoundingPolicy.UP))
+        Money(amount=2935, currency='USD')
         >>> Money.from_major(29.99, Ccy.USD)
-        Money(amount=2999, currency=Currency(ccy='USD'))
+        Money(amount=2999, currency='USD')
         """
         ccy = Currency.of(currency)
         decimal_amount = amount if isinstance(amount, Decimal) else Decimal(str(amount))
@@ -92,7 +104,8 @@ class Money:
         exponent = _decimal_places(amount)
         if exponent > currency.minor_units:
             raise ValueError(
-                f'"{currency.ccy_code}" support only {currency.minor_units} minor units'
+                f"'{currency.ccy_code}' support maximum of "
+                "{currency.minor_units} minor units(decimals)'"
             )
 
     @property
@@ -118,6 +131,11 @@ class Money:
             The amount stored internally as an integer number of minor units.
         """
         return self._amount
+
+    def allocate(
+        self, ratios: list[int], rounding: RoundingPolicy = RoundingPolicy.HALF_EVEN
+    ) -> list[Money]:
+        raise NotImplementedError
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Money):

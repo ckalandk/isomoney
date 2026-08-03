@@ -8,10 +8,10 @@ def _is_display(value: str) -> TypeGuard[Display]:
     return value in ("hidden", "symbol", "iso", "name")
 
 
-@dataclass(frozen=True, slots=True, kw_only=True)
+@dataclass(slots=True)
 class FormatSpec:
+    ccy_display: Display = "symbol"
+
     compact: bool = False
     accounting: bool = False
     group_separator: bool = True
-
-    ccy_display: Display = "symbol"

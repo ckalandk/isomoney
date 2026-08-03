@@ -83,6 +83,7 @@ def use_backend(backend_formatter: CcyFormatter | str) -> None:
                 f"Unknown formatter backend {backend_formatter!r}. "
                 f"Available backends: {', '.join(available_backends())}"
             ) from exc
+        return
     if not isinstance(backend_formatter, CcyFormatter):
         raise TypeError("backend_formatter must be a CcyFormatter instance.")
 

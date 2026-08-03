@@ -22,8 +22,9 @@ _map_symbol: dict[str, _CurrencyDisplay] = {"h": "hidden", "i": "iso", "n": "nam
 
 
 class MoneyFormat:
+    # TODO: !r and !s format field must be handled
     _FORMAT_SPEC_PATTERN = re.compile(
-        r"^(?P<display>[hin])?(?P<compact>c)?(?P<group_sep>u)?(?P<accounting>a)?(?P<rest>.*)$"
+        r"^(?P<display>[hin])?(?P<compact>c)?(?P<accounting>a)?(?P<group_sep>u)?(?P<rest>.*)$"
     )
 
     def __init__(
