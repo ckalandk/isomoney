@@ -1,13 +1,12 @@
-from decimal import Decimal
-
 from isomoney._decimal import _decimal_places
 from isomoney.currency import Ccy
 from isomoney.exceptions import InvalidFormatSpecError
 from isomoney.rounding import RoundingPolicy, as_decimal_rounding
-
+from isomoney._decimal import _remove_trailing_zeros
 from .base_formatter import CcyFormatter
 from .formatspec import FormatSpec
 
+from decimal import Decimal
 __all__ = ["StdFormatter"]
 
 
@@ -64,9 +63,9 @@ class StdFormatter(CcyFormatter):
         currency: str,
         ctx: FormatSpec,
         *,
-        precision: int,
-        rounding: RoundingPolicy,
-        omit_trailing_zeros: bool,
+        precision: int=2,
+        rounding: RoundingPolicy=RoundingPolicy.HALF_EVEN,
+        omit_trailing_zeros: bool=False,
     ) -> str:
         rnd_plcy = as_decimal_rounding(rounding)
         if ctx.ccy_display == "symbol":
@@ -78,9 +77,8 @@ class StdFormatter(CcyFormatter):
         suffix = ""
         if ctx.compact:
             amount, suffix = _format_compact_decimal(amount)
-            amount = amount.quantize(Decimal(f"1.{'0' * precision}"), rounding=rnd_plcy)
-            if omit_trailing_zeros and _decimal_places(amount) > 0:
-                amount = amount.normalize()
+        if omit_trailing_zeros:
+            amount = _remove_trailing_zeros(amount, precision)
 
         if ctx.group_separator:
             number = format(amount, ",")

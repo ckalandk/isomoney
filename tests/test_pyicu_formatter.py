@@ -1,14 +1,13 @@
-from decimal import Decimal
-from functools import partial
-
 import pytest
+icu = pytest.importorskip("icu")
 
 from isomoney.exceptions import InvalidFormatSpecError
 from isomoney.formatting.formatspec import FormatSpec
 from isomoney.formatting.pyicu import IcuFormatter
 from isomoney.rounding import RoundingPolicy
 
-icu = pytest.importorskip("icu")
+from decimal import Decimal
+from functools import partial
 
 
 def normalize_space(s: str) -> str:

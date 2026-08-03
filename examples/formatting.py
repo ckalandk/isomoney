@@ -1,9 +1,9 @@
 from decimal import Decimal
 
-from isomoney import Ccy, Money, formatting
+from isomoney.formatting.std_formatter import StdFormatter
+from isomoney.formatting.formatspec import FormatSpec
 
-formatting.basicConfig(precision=2, omit_trailing_zeros=False)
-
-mny = Money.from_major(Decimal("-12345670000000"), Ccy.USD)
-
-print(f"{mny!r:>80}")
+std_formatter = StdFormatter()
+ctx = FormatSpec(compact=True, ccy_display="iso")
+result = std_formatter.format(Decimal("12.00"), "USD", ctx, precision=2,omit_trailing_zeros=True)
+print(result)
