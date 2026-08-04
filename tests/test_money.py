@@ -6,6 +6,7 @@ from hypothesis import strategies as st
 
 from isomoney import Ccy, Currency, Money
 from isomoney.exceptions import CurrencyMismatchError
+from isomoney.money import AllocationResult
 from isomoney.rounding import RoundingPolicy
 
 
@@ -59,6 +60,17 @@ def test_money_init(minor_units, currency):
 def test_money_instances_are_immutable(money):
     with pytest.raises(AttributeError, match="Money instances are immutable"):
         money()._amount = 1000
+
+
+def test_money_with_zero_amounts_are_cached():
+    zero1 = Money(0, Currency(Ccy.USD))
+    zero2 = Money.from_major(0.0, "USD")
+    zero3 = Money.from_major(Decimal("0"), "USD")
+    zero4 = Money.zero("USD")
+
+    assert zero1 is zero2
+    assert zero2 is zero3
+    assert zero1 is zero4
 
 
 @pytest.mark.parametrize(
@@ -118,7 +130,7 @@ def test_from_major(amount, currency, expected):
         ),
     ],
 )
-def test_from_major_rejects_numbers_with_more_then_minor_unit_decimals(
+def test_from_major_round_numbers_with_more_then_minor_unit_decimals(
     amount, currency, expected
 ):
     mny = Money.from_major(amount, currency, rounding=RoundingPolicy.UP)
@@ -150,6 +162,30 @@ def test_from_major_rejects_non_finite_decimals(svalue):
     with pytest.raises(ValueError) as exc_info:
         Money.from_major(svalue, "USD")
     assert str(exc_info.value) == f"Special/infinite values are forbidden: {svalue!s}"
+
+
+# Testing Allocation
+@pytest.mark.parametrize(
+    "ratios,amount,expected",
+    [
+        pytest.param(
+            [1, 1, 1],
+            10,
+            AllocationResult(
+                [
+                    Money(3, Currency.of("USD")),
+                    Money(3, Currency.of("USD")),
+                    Money(3, Currency.of("USD")),
+                ],
+                Money(1, Currency.of("USD")),
+            ),
+        ),
+    ],
+)
+def test_money_allocation(ratios, amount, expected):
+    mny = Money(amount, Currency.of("USD"))
+    result = mny.allocate(ratios)
+    assert result == expected
 
 
 # Testing the Comparisons

@@ -1,3 +1,5 @@
+from collections.abc import Sequence
+from dataclasses import dataclass
 from decimal import Decimal
 from functools import total_ordering
 from typing import Self, final
@@ -10,6 +12,12 @@ from .exceptions import CurrencyMismatchError
 from .rounding import RoundingPolicy, as_decimal_rounding
 
 __all__ = ["Money"]
+
+
+@dataclass(frozen=True, slots=True)
+class AllocationResult:
+    shares: list[Money]
+    remainder: Money
 
 
 @total_ordering
@@ -44,12 +52,27 @@ class Money:
 
     __slots__ = ("_amount", "_currency")
 
-    def __init__(self, minor_units: int, *, currency: Currency):
+    _zero_cache: dict[str, Self] = {}
+
+    def __new__(cls, minor_units: int, currency: Currency) -> Self:
+        if minor_units == 0:
+            if currency.ccy_code not in cls._zero_cache:
+                instance = super().__new__(cls)
+                cls._zero_cache[currency.ccy_code] = instance
+            return cls._zero_cache[currency.ccy_code]
+        return super().__new__(cls)
+
+    def __init__(self, minor_units: int, currency: Currency) -> None:
         object.__setattr__(self, "_amount", minor_units)
         object.__setattr__(self, "_currency", currency)
 
     def __setattr__(self, name: str, value: object) -> None:
         raise AttributeError(f"{type(self).__name__} instances are immutable")
+
+    @classmethod
+    def zero(cls, currency: Ccy | str) -> Money:
+        ccy = Currency.of(currency)
+        return cls(0, ccy)
 
     @classmethod
     def from_major(
@@ -137,9 +160,17 @@ class Money:
         return self._amount
 
     def allocate(
-        self, ratios: list[int], rounding: RoundingPolicy = RoundingPolicy.HALF_EVEN
-    ) -> list[Money]:
-        raise NotImplementedError
+        self,
+        ratios: Sequence[int],
+    ) -> AllocationResult:
+        total_weight = sum(ratios)
+        shares = [
+            Money(self._amount * ratio // total_weight, currency=self._currency)
+            for ratio in ratios
+        ]
+        leftover = self - sum(shares, Money(0, self.currency))
+
+        return AllocationResult(shares=shares, remainder=leftover)
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Money):
@@ -166,7 +197,7 @@ class Money:
             )
         return Money(
             self._amount + other._amount,
-            currency=self.currency,
+            self.currency,
         )
 
     def __sub__(self, other: object) -> Money:
