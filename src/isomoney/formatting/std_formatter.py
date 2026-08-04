@@ -1,12 +1,13 @@
-from isomoney._decimal import _decimal_places
+from decimal import Decimal
+
+from isomoney._decimal import _enforce_precision, _remove_trailing_zeros
 from isomoney.currency import Ccy
 from isomoney.exceptions import InvalidFormatSpecError
-from isomoney.rounding import RoundingPolicy, as_decimal_rounding
-from isomoney._decimal import _remove_trailing_zeros
+from isomoney.rounding import RoundingPolicy
+
 from .base_formatter import CcyFormatter
 from .formatspec import FormatSpec
 
-from decimal import Decimal
 __all__ = ["StdFormatter"]
 
 
@@ -26,7 +27,7 @@ def _format_compact_decimal(number: Decimal) -> tuple[Decimal, str]:
         return number, ""
 
 
-def _get_currency_symbol(currency: str, display_option: str) -> str:
+def _get_currency_code(currency: str, display_option: str) -> str:
     _map_display = {
         "iso": Ccy[currency].ccy_code,
         "name": Ccy[currency].ccy_name,
@@ -63,22 +64,22 @@ class StdFormatter(CcyFormatter):
         currency: str,
         ctx: FormatSpec,
         *,
-        precision: int=2,
-        rounding: RoundingPolicy=RoundingPolicy.HALF_EVEN,
-        omit_trailing_zeros: bool=False,
+        precision: int = 2,
+        rounding: RoundingPolicy = RoundingPolicy.HALF_EVEN,
+        omit_trailing_zeros: bool = False,
     ) -> str:
-        rnd_plcy = as_decimal_rounding(rounding)
         if ctx.ccy_display == "symbol":
             raise InvalidFormatSpecError(
                 f"{type(self).__name__} doesn't support symbol currency display."
                 "Use IcuFormatter or BabelFormatter instead."
             )
-        symbol = _get_currency_symbol(currency, ctx.ccy_display)
+        symbol = _get_currency_code(currency, ctx.ccy_display)
         suffix = ""
         if ctx.compact:
             amount, suffix = _format_compact_decimal(amount)
+        amount = _enforce_precision(amount, precision, rounding)
         if omit_trailing_zeros:
-            amount = _remove_trailing_zeros(amount, precision)
+            amount = _remove_trailing_zeros(amount)
 
         if ctx.group_separator:
             number = format(amount, ",")

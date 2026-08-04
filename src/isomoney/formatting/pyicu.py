@@ -67,6 +67,7 @@ def _build_icu_currency_formatter(
 
     # Apply Precision & Trailing Zeros
     if omit_trailing_zeros:
+        # TODO maybe the right method to call here is maxFraction(precision)!
         precision_rule = icu.Precision.minMaxFraction(0, precision)
     else:
         precision_rule = icu.Precision.fixedFraction(precision)

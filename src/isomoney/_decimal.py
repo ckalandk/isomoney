@@ -1,5 +1,7 @@
 from decimal import Decimal
 
+from isomoney.rounding import RoundingPolicy, as_decimal_rounding
+
 
 def _decimal_places(x: Decimal) -> int:
     """
@@ -19,7 +21,8 @@ def _decimal_places(x: Decimal) -> int:
 
     return counter
 
-def _remove_trailing_zeros(value: Decimal, precision:int=2) -> Decimal:
+
+def _remove_trailing_zeros(value: Decimal, precision: int = 2) -> Decimal:
     """
     Removes trailing fractional zeroes from a Decimal .
     """
@@ -27,13 +30,12 @@ def _remove_trailing_zeros(value: Decimal, precision:int=2) -> Decimal:
         cleaned = value.quantize(Decimal("1"))
     else:
         cleaned = value.normalize()
-
-    if precision > 0:
-        exp = cleaned.as_tuple().exponent
-        assert isinstance(exp, int)
-        num_decimals = -exp
-        
-        if num_decimals < precision:
-            pad_target = Decimal(f"1.{'0' * precision}")
-            return cleaned.quantize(pad_target)
     return cleaned
+
+
+def _enforce_precision(
+    value: Decimal, precision: int, rounding: RoundingPolicy
+) -> Decimal:
+    return value.quantize(
+        Decimal(f"1.{'0' * precision}"), rounding=as_decimal_rounding(rounding)
+    )
