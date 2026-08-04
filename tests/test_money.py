@@ -6,6 +6,7 @@ from hypothesis import strategies as st
 
 from isomoney import Ccy, Currency, Money
 from isomoney.exceptions import CurrencyMismatchError
+from isomoney.rounding import RoundingPolicy
 
 
 @pytest.fixture
@@ -95,35 +96,33 @@ def test_from_major(amount, currency, expected):
 
 
 @pytest.mark.parametrize(
-    "amount,currency",
+    "amount,currency,expected",
     [
         pytest.param(
             Decimal("29.345"),
             "USD",
+            Decimal("29.35"),
             id="USD too many fractional digits",
         ),
         pytest.param(
             Decimal("29.1"),
             "JPY",
+            Decimal("30"),
             id="JPY fractional amount",
         ),
         pytest.param(
             Decimal("29.1234"),
             "KWD",
+            Decimal("29.124"),
             id="KWD four fractional digits",
         ),
     ],
 )
 def test_from_major_rejects_numbers_with_more_then_minor_unit_decimals(
-    amount, currency
+    amount, currency, expected
 ):
-    _minor_unit = Currency.of(currency).minor_units
-    with pytest.raises(ValueError) as exc_info:
-        Money.from_major(amount, currency)
-    assert (
-        str(exc_info.value)
-        == f"'{currency}' supports maximum of {_minor_unit} minor units(decimals)"
-    )
+    mny = Money.from_major(amount, currency, rounding=RoundingPolicy.UP)
+    assert mny.to_decimal() == expected
 
 
 @pytest.mark.parametrize(

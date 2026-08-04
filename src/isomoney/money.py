@@ -7,7 +7,7 @@ from isomoney.formatting import format as money_format
 from ._decimal import _decimal_places
 from .currency import Ccy, Currency
 from .exceptions import CurrencyMismatchError
-from .rounding import RoundingPolicy
+from .rounding import RoundingPolicy, as_decimal_rounding
 
 __all__ = ["Money"]
 
@@ -57,7 +57,7 @@ class Money:
         amount: Decimal | float,
         currency: Ccy | str,
         *,
-        rounding: RoundingPolicy | None = None,
+        rounding: RoundingPolicy = RoundingPolicy.HALF_EVEN,
     ) -> Self:
         """
         Construct a Money instance from an amount expressed in major units.
@@ -94,20 +94,23 @@ class Money:
         """
         ccy = Currency.of(currency)
         decimal_amount = amount if isinstance(amount, Decimal) else Decimal(str(amount))
-        cls._validate_amount(decimal_amount, ccy)
+        decimal_amount = cls._validate_amount(decimal_amount, ccy, rounding)
         minor_units = int(decimal_amount * (10**ccy.minor_units))
         return cls(minor_units, currency=ccy)
 
     @staticmethod
-    def _validate_amount(amount: Decimal, currency: Currency) -> None:
+    def _validate_amount(
+        amount: Decimal,
+        currency: Currency,
+        rounding: RoundingPolicy = RoundingPolicy.HALF_EVEN,
+    ) -> Decimal:
         if not amount.is_finite():
             raise ValueError(f"Special/infinite values are forbidden: {amount}")
         exponent = _decimal_places(amount)
         if exponent > currency.minor_units:
-            raise ValueError(
-                f"'{currency.ccy_code}' supports maximum of "
-                f"{currency.minor_units} minor units(decimals)"
-            )
+            exp = Decimal(f"1.{'0' * currency.minor_units}")
+            amount = amount.quantize(exp, rounding=as_decimal_rounding(rounding))
+        return amount
 
     @property
     def currency(self) -> Currency:
@@ -173,6 +176,10 @@ class Money:
 
     def __neg__(self) -> Money:
         return Money(-self._amount, currency=self.currency)
+
+    def __divmod__(self, divisor: int) -> tuple[Money, Money]:
+        quot, rem = divmod(self._amount, divisor)
+        return (Money(quot, currency=self.currency), Money(rem, currency=self.currency))
 
     def to_decimal(self) -> Decimal:
         """

@@ -1,4 +1,5 @@
-from isomoney import formatting, Money
+from isomoney import Money, formatting
+
 
 def test_basic_usage():
     # Create a Money object
