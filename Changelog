@@ -1,0 +1,82 @@
+# Changelog
+
+## [0.8.0] - Unreleased
+
+## Added
+
+### Core types
+
+- Added auto generated Ccy enumeration containing ISO 4217 currency definitions.
+- Implemented immutable Currency class backed by ISO 4217 metadata(Ccy).
+- Added Currency.of() factory with instance caching.
+- Implemented immutable Money class.
+- Added cached zero-money instances for efficient reuse.
+
+### Money construction
+
+- Construct money from minor units.
+- Construct money from major units using `Money.from_major()`.
+- Validation of non-finite Decimal values (`NaN`, `infinities`).
+- Configurable rounding policy when converting from major units.
+
+### Arithmetic
+
+- Addition and subtraction.
+- Unary negation.
+- Rich comparison operators.
+- Currency mismatch validation with dedicated exceptions.
+- Introduced the internal `_Unrounded` type for operations that may
+  produce fractional minor units.
+- Multiplication and division by non-integer factors are evaluated eagerly
+  while preserving full `Decimal` precision.
+- Conversion back to `Money` requires an explicit call to `quantize()`,
+  making rounding an explicit operation.
+
+### Allocation
+
+- Added proportional allocation algorithm.
+- Support for zero-weight ratios.
+- Support for empty ratio lists.
+- Deterministic remainder ("fat penny") handling.
+- Allocation result returned through the AllocationResult type.
+
+### Conversion & Formatting
+
+- Conversion to Decimal (to_decimal()).
+- Human-readable __str__.
+- Developer-friendly __repr__.
+- Custom formatting support.
+
+### Testing
+
+- Comprehensive property-based test suite using Hypothesis.
+- Parametrized regression tests.
+- Verified arithmetic properties where mathematically applicable.
+- Verified allocation invariants:
+  - no penny lost,
+  - non-negative shares,
+  - proportional allocation,
+  - remainder preservation.
+- Extensive edge-case coverage for rounding behaviour and currency validation.
+
+### Performance
+
+- Cached frequently created currency objects.
+- Cached zero-money instances.
+- Integer storage for minor units to optimize common arithmetic operations.
+- Deferred decimal arithmetic until quantization for unsafe operations.
+
+### Documentation
+
+In progress...
+
+### Notes
+
+Unsafe arithmetic uses Python's Decimal (subject to change in the future if there is any performance gain). Some Algebraic identities involving multiplication and division, specifically:
+
+- `(money * a) * b == money * (a * b)`
+- `(money / a) * a == money`
+
+where `a` and `b` are decimal, and money is an instance of `_Unrounded` type.
+are guaranteed only within reasonable input ranges supported by the active decimal context.
+Extremely large values may break those identities.

@@ -1,11 +1,11 @@
 [project]
 name = "isomoney"
-version = "0.5.0"
+version = "0.8.0"
 description = "An ISO compliant money and currency library"
 readme = "README.md"
 license = "MIT"
 authors = [
-    { name = "Khaled Kessoum" }
+    { name = "Khaled Kessoum", email = "ckalandk.main@gmail.com"}
 ]
 
 requires-python = ">=3.14"
