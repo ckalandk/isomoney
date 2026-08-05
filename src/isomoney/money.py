@@ -6,7 +6,7 @@ from typing import Self, final
 
 from isomoney.formatting import format as money_format
 
-from ._decimal import _decimal_places
+from ._decimal import _decimal_places, _force_decimal
 from .currency import Ccy, Currency
 from .exceptions import CurrencyMismatchError
 from .rounding import RoundingPolicy, as_decimal_rounding
@@ -16,7 +16,7 @@ __all__ = ["Money"]
 
 @dataclass(frozen=True, slots=True)
 class AllocationResult:
-    shares: list[Money]
+    shares: tuple[Money, ...]
     remainder: Money
 
 
@@ -43,8 +43,8 @@ class Money:
     -----
     The internal representation always uses minor units. For example:
 
-    - Money(2934, currency=Currency(Ccy.USD)) represents 29.34 USD.
-    - Money(29, currency=Currency(Ccy.JPY)) represents 29 JPY.
+    - Money(2934, Currency(Ccy.USD)) represents 29.34 USD.
+    - Money(29, Currency(Ccy.JPY)) represents 29 JPY.
     """
 
     _amount: int
@@ -53,6 +53,64 @@ class Money:
     __slots__ = ("_amount", "_currency")
 
     _zero_cache: dict[str, Self] = {}
+
+    class _Unrounded:
+        __slots__ = ("amount", "currency")
+
+        def __init__(self, money: Money):
+            self.amount = Decimal(money._amount)
+            self.currency = money.currency
+
+        def __mul__(self, factor: float | Decimal) -> Money._Unrounded:
+            factor = _force_decimal(factor)
+            new = self.__class__.__new__(self.__class__)
+            new.currency = self.currency
+            new.amount = self.amount
+            new *= factor
+            return new
+
+        def __rmul__(self, factor: float | Decimal) -> Money._Unrounded:
+            return self * factor
+
+        def __imul__(self, factor: float | Decimal) -> Money._Unrounded:
+            factor = _force_decimal(factor)
+            if factor < 0:
+                raise ValueError(f"expected non-negative factor, got {factor}")
+            self.amount *= factor
+            return self
+
+        def __truediv__(self, factor: float | Decimal) -> Money._Unrounded:
+            factor = _force_decimal(factor)
+            new = self.__class__.__new__(self.__class__)
+            new.currency = self.currency
+            new.amount = self.amount
+            new /= factor
+            return new
+
+        def __itruediv__(self, factor: float | Decimal) -> Money._Unrounded:
+            factor = _force_decimal(factor)
+            if factor < 0:
+                raise ValueError(f"expected non-negative factor, got {factor}")
+            self.amount /= factor
+            return self
+
+        def quantize(
+            self, rounding: RoundingPolicy = RoundingPolicy.HALF_EVEN
+        ) -> Money:
+            # TODO Maybe avoid rounding if self.amount is an integer? profile
+            rounded = self.amount.quantize(
+                Decimal("1"), rounding=as_decimal_rounding(rounding)
+            )
+            return Money(int(rounded), self.currency)
+
+        def __eq__(self, other: object) -> bool:
+            if not isinstance(other, Money._Unrounded):
+                return NotImplemented
+
+            return self.amount == other.amount and self.currency == other.currency
+
+        def __repr__(self) -> str:
+            return f"Money._Unrounded({self.amount}, {self.currency.ccy_code})"
 
     def __new__(cls, minor_units: int, currency: Currency) -> Self:
         if minor_units == 0:
@@ -116,7 +174,7 @@ class Money:
         Money(amount=2999, currency='USD')
         """
         ccy = Currency.of(currency)
-        decimal_amount = amount if isinstance(amount, Decimal) else Decimal(str(amount))
+        decimal_amount = _force_decimal(amount)
         decimal_amount = cls._validate_amount(decimal_amount, ccy, rounding)
         minor_units = int(decimal_amount * (10**ccy.minor_units))
         return cls(minor_units, currency=ccy)
@@ -163,11 +221,15 @@ class Money:
         self,
         ratios: Sequence[int],
     ) -> AllocationResult:
+        if not ratios:
+            return AllocationResult(shares=tuple(), remainder=self)
+        if any(r < 0 for r in ratios):
+            raise ValueError("ratios cannot contain negative values")
         total_weight = sum(ratios)
-        shares = [
+        shares = tuple(
             Money(self._amount * ratio // total_weight, currency=self._currency)
             for ratio in ratios
-        ]
+        )
         leftover = self - sum(shares, Money(0, self.currency))
 
         return AllocationResult(shares=shares, remainder=leftover)
@@ -200,10 +262,16 @@ class Money:
             self.currency,
         )
 
+    def __iadd__(self, other: object) -> Money:
+        return self + other
+
     def __sub__(self, other: object) -> Money:
         if not isinstance(other, Money):
             return NotImplemented
         return self + (-other)
+
+    def __isub__(self, other: object) -> Money:
+        return self - other
 
     def __neg__(self) -> Money:
         return Money(-self._amount, currency=self.currency)
@@ -211,6 +279,19 @@ class Money:
     def __divmod__(self, divisor: int) -> tuple[Money, Money]:
         quot, rem = divmod(self._amount, divisor)
         return (Money(quot, currency=self.currency), Money(rem, currency=self.currency))
+
+    def __mul__(self, factor: float | Decimal) -> Money._Unrounded:
+        unrounded = Money._Unrounded(self)
+        unrounded *= factor
+        return unrounded
+
+    def __rmul__(self, factor: float | Decimal) -> Money._Unrounded:
+        return self * factor
+
+    def __truediv__(self, factor: float | Decimal) -> Money._Unrounded:
+        unrounded = Money._Unrounded(self)
+        unrounded /= factor
+        return unrounded
 
     def to_decimal(self) -> Decimal:
         """
@@ -226,11 +307,11 @@ class Money:
 
         Examples
         --------
-        >>> Money(2934, currency=Currency(Ccy.USD)).to_decimal()
+        >>> Money(2934, Currency(Ccy.USD)).to_decimal()
         Decimal('29.34')
-        >>> Money(29, currency=Currency(Ccy.JPY)).to_decimal()
+        >>> Money(29, Currency(Ccy.JPY)).to_decimal()
         Decimal('29')
-        >>> Money(29123, currency=Currency(Ccy.KWD)).to_decimal()
+        >>> Money(29123, Currency(Ccy.KWD)).to_decimal()
         Decimal('29.123')
         """
         mn_unit = self.currency.minor_units
@@ -240,6 +321,9 @@ class Money:
             exponent = Decimal(f"1e-{mn_unit}")
         ret = Decimal(self._amount) * exponent
         return ret
+
+    def __hash__(self) -> int:
+        return hash((self._amount, self.currency))
 
     def __repr__(self) -> str:
         return f"Money(amount={self.to_decimal()}, currency='{self.currency.ccy_code}')"

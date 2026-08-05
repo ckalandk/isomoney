@@ -39,3 +39,9 @@ def _enforce_precision(
     return value.quantize(
         Decimal(f"1.{'0' * precision}"), rounding=as_decimal_rounding(rounding)
     )
+
+
+def _force_decimal(value: float | Decimal) -> Decimal:
+    if not isinstance(value, Decimal):
+        return Decimal(str(value))
+    return value

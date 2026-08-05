@@ -9,8 +9,16 @@ from isomoney.exceptions import CurrencyMismatchError
 from isomoney.money import AllocationResult
 from isomoney.rounding import RoundingPolicy
 
+# TODO add two methods as_dict, from_dict
+# use this format for dict {"amount", "2.99", "currency", "USD"}
+# from_dict should call from_major
 
-@pytest.fixture
+
+def _usd_money(amount: int, currency: str = "USD") -> Money:
+    return Money(amount, Currency.of(currency))
+
+
+@pytest.fixture(scope="session")
 def money():
     def _amount(amount=200, ccy="USD"):
         return Money(amount, currency=Currency.of(ccy))
@@ -40,6 +48,15 @@ def strict_ordered_pairs(draw):
 @st.composite
 def ccy_code(draw):
     return draw(st.from_type(Ccy))
+
+
+@st.composite
+def rounding(draw):
+    return draw(
+        st.from_type(RoundingPolicy).filter(
+            lambda rounding: rounding != RoundingPolicy.UNNECESSARY
+        )
+    )
 
 
 @pytest.mark.parametrize(
@@ -165,27 +182,83 @@ def test_from_major_rejects_non_finite_decimals(svalue):
 
 
 # Testing Allocation
+
+
+@given(
+    amount=st.integers(0, 1_000_000),
+    ratios=st.lists(st.integers(1, 10), min_size=1),
+    code=ccy_code(),
+)
+def test_money_allocation_properties(ratios, amount, code):
+    mny = Money(amount, Currency.of(code.ccy_code))
+    result = mny.allocate(ratios)
+
+    # Sanity checks
+    assert all(isinstance(share, Money) for share in result.shares)
+    ccy = result.shares[0].currency
+    assert all(result.shares[i].currency == ccy for i in range(1, len(result.shares)))
+
+    # All shares must be positive
+    assert all(share >= Money.zero(code.ccy_code) for share in result.shares)
+
+    # Number of shares == Number of ratios
+    if ratios:
+        assert len(ratios) == len(result.shares)
+    else:
+        assert len(result.shares) == 1 and result.shares[0] is mny
+
+    # No penny is lost, sum of shares + the remainded must equal the original money
+    assert sum(result.shares, Money.zero(code.ccy_code)) + result.remainder == mny
+
+
 @pytest.mark.parametrize(
-    "ratios,amount,expected",
+    "amount,ratios,expected",
     [
         pytest.param(
+            100,
             [1, 1, 1],
-            10,
             AllocationResult(
-                [
-                    Money(3, Currency.of("USD")),
-                    Money(3, Currency.of("USD")),
-                    Money(3, Currency.of("USD")),
-                ],
-                Money(1, Currency.of("USD")),
+                shares=(
+                    _usd_money(33),
+                    _usd_money(33),
+                    _usd_money(33),
+                ),
+                remainder=_usd_money(1),
             ),
+        ),
+        pytest.param(
+            201,
+            [1, 4],
+            AllocationResult(
+                shares=(_usd_money(40), _usd_money(160)),
+                remainder=Money(1, Currency.of("USD")),
+            ),
+        ),
+        pytest.param(
+            201,
+            [0, 4],
+            AllocationResult(
+                shares=(_usd_money(0), _usd_money(201)),
+                remainder=_usd_money(0),
+            ),
+        ),
+        pytest.param(
+            201,
+            [],
+            AllocationResult(shares=tuple(), remainder=_usd_money(201)),
         ),
     ],
 )
-def test_money_allocation(ratios, amount, expected):
+def test_money_allocation_examples(amount, ratios, expected):
     mny = Money(amount, Currency.of("USD"))
     result = mny.allocate(ratios)
     assert result == expected
+
+
+def test_money_allocation_rejects_ratios_with_negative_content(money):
+    mny = money("USD")
+    with pytest.raises(ValueError, match="ratios cannot contain negative values"):
+        mny.allocate([1, 0, -2])
 
 
 # Testing the Comparisons
@@ -193,31 +266,31 @@ def test_money_allocation(ratios, amount, expected):
     "self_,other,expected",
     [
         pytest.param(
-            Money(199, currency=Currency(Ccy.USD)),
-            Money(199, currency=Currency(Ccy.USD)),
+            _usd_money(199),
+            _usd_money(199),
             True,
             id="Same amount, same currencies",
         ),
         pytest.param(
-            Money(199, currency=Currency(Ccy.USD)),
-            Money(199, currency=Currency(Ccy.EUR)),
+            _usd_money(199),
+            _usd_money(199, "EUR"),
             False,
             id="Same amounts, different currencies",
         ),
         pytest.param(
-            Money(199, currency=Currency(Ccy.USD)),
-            Money(200, currency=Currency(Ccy.USD)),
+            _usd_money(199),
+            _usd_money(200),
             False,
             id="Different amounts, same currencies",
         ),
         pytest.param(
-            Money(199, currency=Currency(Ccy.USD)),
-            Money(200, currency=Currency(Ccy.EUR)),
+            _usd_money(199),
+            _usd_money(200, "EUR"),
             False,
             id="Different amounts, Different currencies",
         ),
         pytest.param(
-            Money(199, currency=Currency(Ccy.USD)),
+            _usd_money(199),
             object(),
             False,
             id="Comparing with object",
@@ -261,7 +334,7 @@ def test_money_comparison_raises_when_operands_have_different_currencies(money):
 
 # Test Arithmetic operations
 @given(n=st.integers(), m=st.integers())
-def test_money_add_return_the_right_amount(n, m):
+def test_money_add_return_expected_amount(n, m):
     left = Money(n, currency=Currency(Ccy.USD))
     right = Money(m, currency=Currency(Ccy.USD))
     result = left + right
@@ -308,7 +381,7 @@ def test_money_add_raises_when_operand_have_different_currencies(money):
 
 
 @given(st.integers(), st.integers())
-def test_money_sub_return_the_right_amount(n, m):
+def test_money_sub_return_expected_amount(n, m):
     left = Money(n, currency=Currency(Ccy.USD))
     right = Money(m, currency=Currency(Ccy.USD))
     result = left - right
@@ -354,23 +427,23 @@ def test_money_add_and_sub_are_compatible(n, m):
     "money_,expected",
     [
         pytest.param(
-            Money(1234, currency=Currency(Ccy.USD)),
+            _usd_money(1234),
             Decimal("12.34"),
             id="Currency with two minor_unit",
         ),
         pytest.param(
-            Money(1234, currency=Currency(Ccy.JPY)),
+            _usd_money(1234, "JPY"),
             Decimal("1234"),
             id="Currency with 0 minor_unit",
         ),
         pytest.param(
-            Money(1234, currency=Currency(Ccy.KWD)),
+            _usd_money(1234, "KWD"),
             Decimal("1.234"),
             id="Currency with 3 minor_unit",
         ),
         pytest.param(
-            Money(12000, currency=Currency(Ccy.KWD)),
-            Decimal("12.000"),
+            _usd_money(12099, "KWD"),
+            Decimal("12.099"),
             id="Add minor_unit trailing zeros",
         ),
     ],
@@ -379,13 +452,165 @@ def test_money_to_decimal(money_, expected):
     assert money_.to_decimal() == expected
 
 
-@given(amount=st.integers(), ccy=ccy_code())
-def test_money_repr(amount, ccy):
-    mny = Money(amount, currency=Currency(ccy))
-    assert repr(mny) == f"Money(amount={mny.to_decimal()}, currency='{ccy.ccy_code}')"
+@pytest.mark.parametrize("amount, currency", [(299, "USD"), (199, "KWD"), (220, "EUR")])
+def test_money_repr(amount, currency):
+    mny = Money(amount, Currency.of(currency))
+    assert repr(mny) == f"Money(amount={mny.to_decimal()}, currency='{currency}')"
 
 
-@given(amount=st.integers(), ccy=ccy_code())
-def test_money_str(amount, ccy):
-    mny = Money(999, currency=Currency(ccy))
-    assert str(mny) == f"{mny.to_decimal()!s} {ccy.ccy_code}"
+@pytest.mark.parametrize(
+    "amount, currency",
+    [(299, "USD"), (199, "KWD"), (220, "EUR")],
+)
+def test_money_str(amount, currency):
+    mny = Money(amount, Currency.of(currency))
+    assert str(mny) == f"{mny.to_decimal()!s} {currency}"
+
+
+@st.composite
+def _any_money_unrounded(draw) -> Money._Unrounded:
+    amount = draw(st.integers(min_value=-(10**19), max_value=10**19))
+    return Money._Unrounded(Money(amount, Currency.of("USD")))
+
+
+decimals = st.decimals(
+    min_value=Decimal("0"),
+    max_value=Decimal("100"),
+    places=6,
+    allow_nan=False,
+    allow_infinity=False,
+)
+
+non_zero_decimals = decimals.filter(lambda d: d != 0)
+
+
+class Test_Money_Unrounded_Arithmetic_Operations:
+    def test_init(self, money):
+        unrounded = Money._Unrounded(money())
+        assert unrounded.amount == Decimal("200")
+        assert unrounded.currency == Currency.of("USD")
+
+    @given(mny=_any_money_unrounded(), factor=decimals)
+    def test_multiplication(self, mny, factor):
+        result = mny * factor
+        assert result.amount == mny.amount * factor
+        assert result.amount == factor * mny.amount
+
+    def test_multiplication_does_not_mutate_its_operand(self, money):
+        unrounded = Money._Unrounded(money())
+        original_amount = unrounded.amount
+        _ = unrounded * Decimal("1.5")
+
+        assert original_amount == unrounded.amount
+
+    @given(mny=_any_money_unrounded(), factor=decimals)
+    def test_implace_multiplication(self, mny, factor):
+        expected_amount = mny.amount * factor
+        mny *= factor
+
+        assert mny.amount == expected_amount
+
+    @given(mny=_any_money_unrounded(), left=decimals, right=decimals)
+    def test_multiplication_is_associative_under_reasonable_input(
+        self, mny, left, right
+    ):
+        # The range of inputs is encoded in the stategies
+        # if the inputs are astronomically big, associativiy may break
+        # du to implicit Decimal rounding to accomodate its context precision
+        assert (mny * left) * right == mny * (left * right)
+
+    def test_multiplication_rejects_negative_inputs(self, money):
+        unrounded = Money._Unrounded(money())
+        with pytest.raises(ValueError, match=f"expected non-negative factor, got {-2}"):
+            _ = unrounded * Decimal("-2")
+
+    @given(mny=_any_money_unrounded(), factor=non_zero_decimals)
+    def test_division(self, mny, factor):
+        result = mny / factor
+        assert result.amount == mny.amount / factor
+
+    def test_division_does_not_mutate_its_operand(self, money):
+        unrounded = Money._Unrounded(money())
+        original_amount = unrounded.amount
+        _ = unrounded / Decimal("1.5")
+
+        assert original_amount == unrounded.amount
+
+    @given(mny=_any_money_unrounded(), factor=non_zero_decimals)
+    def test_implace_division(self, mny, factor):
+        expected_amount = mny.amount / factor
+        mny /= factor
+
+        assert mny.amount == expected_amount
+
+    @given(mny=_any_money_unrounded())
+    def test_division_by_one_return_the_same_amount(self, mny):
+        result = mny / Decimal("1")
+        assert result == mny
+
+    def test_division_rejects_negative_inputs(self, money):
+        unrounded = Money._Unrounded(money())
+        with pytest.raises(ValueError, match=f"expected non-negative factor, got {-2}"):
+            _ = unrounded / Decimal("-2")
+
+    def test_division_by_zero_raise_division_error(self, money):
+        unrounded = Money._Unrounded(money())
+        with pytest.raises(ZeroDivisionError):
+            _ = unrounded / Decimal("0")
+
+
+class Test_Money_Unrounded_Quantize:
+    def test_quantize_preserves_currency(self, money):
+        unrounded = Money._Unrounded(money())
+        assert unrounded.currency == money().currency
+
+    @pytest.mark.parametrize(
+        "amount, rounding, expected",
+        [
+            (Decimal("123.4"), RoundingPolicy.HALF_EVEN, 123),
+            (Decimal("123.5"), RoundingPolicy.HALF_EVEN, 124),
+            (Decimal("124.5"), RoundingPolicy.HALF_EVEN, 124),
+            (Decimal("123.5"), RoundingPolicy.HALF_UP, 124),
+            (Decimal("123.5"), RoundingPolicy.DOWN, 123),
+        ],
+    )
+    def test_quantize_produce_expected_result(self, amount, rounding, expected, money):
+        unrounded = Money._Unrounded(money())
+        unrounded.amount = amount
+        assert unrounded.quantize(rounding) == money(expected)
+
+    @given(amount=st.integers(-(10**19), 10**19), rounding=rounding())
+    def test_quantize_integer_is_independant_of_rounding(self, amount, rounding, money):
+        unrounded = Money._Unrounded(money())
+        unrounded.amount = Decimal(amount)
+        assert unrounded.quantize() == money(amount)
+
+    @given(n=st.integers(1, 100))
+    def test_quantize_multiplying_by_integer(self, n, money):
+        mny = money(20)
+        assert (mny * Decimal(str(n))).quantize() == (
+            sum((money(20) for i in range(n)), Money.zero("USD"))
+        )
+
+    @given(amount=st.integers(-(10**19), 10**19))
+    def test_quantize_after_division_by_one_is_identity(self, amount, money):
+        unrounded = money(amount) / Decimal("1")
+        assert unrounded.quantize() == money(amount)
+
+
+class Test_Money_Unrounded_Properties:
+    def test_chained_operations_preserve_order(self, money):
+        expr = ((money(299) * Decimal("15")) / Decimal("0.15")) * Decimal("25")
+
+        expected = Decimal("299") * Decimal("15") / Decimal("0.15") * Decimal("25")
+
+        assert expr.amount == expected
+
+    def test_quantize_after_chained_operations(self, money):
+        result = ((money(199) * Decimal("15")) / Decimal("0.25")).quantize()
+
+        expected = Money.from_major(
+            Decimal(199) * Decimal("15") / Decimal("0.25") / 10**2, "USD"
+        )
+
+        assert result == expected
