@@ -318,11 +318,13 @@ class Money:
         quot, rem = divmod(self._amount, divisor)
         return (Money(quot, currency=self.currency), Money(rem, currency=self.currency))
 
+    # Mypy didn't complain about this overloads (int/float), but pyright
+    # is complaining!
     @overload
-    def __mul__(self, factor: int) -> Money: ...
+    def __mul__(self, factor: int) -> Money: ...  # pyright: ignore[reportOverlappingOverload]
 
     @overload
-    def __mul__(self, factor: float) -> MoneyLike: ...
+    def __mul__(self, factor: float) -> Unrounded: ...
 
     @overload
     def __mul__(self, factor: Decimal) -> Unrounded: ...
@@ -330,9 +332,8 @@ class Money:
     def __mul__(self, factor: Factor) -> MoneyLike:
         if type(factor) is int:
             return Money(self._amount * factor, self.currency)
-        unrounded = Unrounded(self)
-        unrounded *= factor
-        return unrounded
+
+        return Unrounded(self) * factor
 
     def __rmul__(self, factor: Factor) -> MoneyLike:
         return self * factor

@@ -127,6 +127,6 @@ class IcuFormatter(CcyFormatter):
             # it behaves as expected.
             positive_string = formatter.formatDecimal(str(abs(amount)).encode("utf-8"))
             return f"({positive_string.strip()})"
-        # The returned formatted string i stripped from leading/trailing whitespace
+        # The returned formatted string stripped from leading/trailing whitespace
         # to avoid issues with hidden currency symbols and compact formatting.
         return formatter.formatDecimal(str(amount).encode("utf-8")).strip()  # type: ignore[no-any-return]

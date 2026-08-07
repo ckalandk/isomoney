@@ -25,3 +25,13 @@ assert type(result) is Unrounded
 
 result = chair * 2
 assert type(result) is Money
+
+unit_price = Money.from_major(12.99, "USD")
+number_of_items = 15
+total_price = unit_price * number_of_items
+assert type(total_price) is Money
+
+salary = Money.from_major(1500.45, "USD")
+bonified_salary = (salary * 1.3).quantize()
+
+print(bonified_salary)
