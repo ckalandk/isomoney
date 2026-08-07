@@ -1,8 +1,7 @@
 from collections.abc import Sequence
-from dataclasses import dataclass
 from decimal import Decimal
 from functools import total_ordering
-from typing import Self, final
+from typing import Self, final, NamedTuple, Iterable, overload
 
 from isomoney.formatting import format as money_format
 
@@ -13,12 +12,104 @@ from .rounding import RoundingPolicy, as_decimal_rounding
 
 __all__ = ["Money"]
 
+@final
+class Unrounded:
+    __slots__ = ("_amount", "currency")
 
-@dataclass(frozen=True, slots=True)
-class AllocationResult:
+    def __init__(self, money: Money):
+        self._amount = Decimal(money._amount)
+        self.currency = money.currency
+
+    def __add__(self, other: MoneyLike) -> Unrounded:
+        new = self.__class__.__new__(self.__class__)
+        new._amount = self._amount 
+        new.currency = self.currency
+        new += other
+        return new
+
+    def __iadd__(self, other: MoneyLike) -> Unrounded:
+        if not isinstance(other, (Unrounded, Money)):
+            return NotImplemented
+        if self.currency != other.currency:
+            raise CurrencyMismatchError(    
+                "Operands currencies must be equal"
+            )
+        self._amount += other._amount
+        return self
+
+    def __sub__(self, other: MoneyLike) -> Unrounded:
+        new = self.__class__.__new__(self.__class__)
+        new._amount = self._amount 
+        new.currency = self.currency
+        new -= other
+        return new
+
+    def __isub__(self, other: MoneyLike) -> Unrounded:
+        if not isinstance(other, (Unrounded, Money)):
+            return NotImplemented
+        if self.currency != other.currency:
+            raise CurrencyMismatchError(    
+                "Operands currencies must be equal"
+            )
+        self._amount -= other._amount
+        return self
+    
+    def __mul__(self, factor: Factor) -> Unrounded:
+        factor = _force_decimal(factor)
+        new = self.__class__.__new__(self.__class__)
+        new.currency = self.currency
+        new._amount = self._amount
+        new *= factor
+        return new
+
+    def __rmul__(self, factor: Factor) -> Unrounded:
+        return self * factor
+
+    def __imul__(self, factor: Factor) -> Unrounded:
+        factor = _force_decimal(factor)
+        if factor < 0:
+            raise ValueError(f"expected non-negative factor, got {factor}")
+        self._amount *= factor
+        return self
+
+    def __truediv__(self, factor: float | Decimal) -> Unrounded:
+        factor = _force_decimal(factor)
+        new = self.__class__.__new__(self.__class__)
+        new.currency = self.currency
+        new._amount = self._amount
+        new /= factor
+        return new
+
+    def __itruediv__(self, factor: float | Decimal) -> Unrounded:
+        factor = _force_decimal(factor)
+        if factor < 0:
+            raise ValueError(f"expected non-negative factor, got {factor}")
+        self._amount /= factor
+        return self
+
+    def quantize(
+        self, rounding: RoundingPolicy = RoundingPolicy.HALF_EVEN
+    ) -> Money:
+        # TODO Maybe avoid rounding if self.amount is an integer? profile
+        rounded = self._amount.quantize(
+            Decimal("1"), rounding=as_decimal_rounding(rounding)
+        )
+        return Money(int(rounded), self.currency)
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Unrounded):
+            return NotImplemented
+        return self._amount == other._amount and self.currency == other.currency
+
+    def __repr__(self) -> str:
+        return f"Unrounded({self._amount}, {self.currency.ccy_code})"
+        
+class AllocationResult(NamedTuple):
     shares: tuple[Money, ...]
     remainder: Money
 
+type MoneyLike = Money | Unrounded
+type Factor = int | float | Decimal
 
 @total_ordering
 @final
@@ -53,64 +144,6 @@ class Money:
     __slots__ = ("_amount", "_currency")
 
     _zero_cache: dict[str, Self] = {}
-
-    class _Unrounded:
-        __slots__ = ("amount", "currency")
-
-        def __init__(self, money: Money):
-            self.amount = Decimal(money._amount)
-            self.currency = money.currency
-
-        def __mul__(self, factor: float | Decimal) -> Money._Unrounded:
-            factor = _force_decimal(factor)
-            new = self.__class__.__new__(self.__class__)
-            new.currency = self.currency
-            new.amount = self.amount
-            new *= factor
-            return new
-
-        def __rmul__(self, factor: float | Decimal) -> Money._Unrounded:
-            return self * factor
-
-        def __imul__(self, factor: float | Decimal) -> Money._Unrounded:
-            factor = _force_decimal(factor)
-            if factor < 0:
-                raise ValueError(f"expected non-negative factor, got {factor}")
-            self.amount *= factor
-            return self
-
-        def __truediv__(self, factor: float | Decimal) -> Money._Unrounded:
-            factor = _force_decimal(factor)
-            new = self.__class__.__new__(self.__class__)
-            new.currency = self.currency
-            new.amount = self.amount
-            new /= factor
-            return new
-
-        def __itruediv__(self, factor: float | Decimal) -> Money._Unrounded:
-            factor = _force_decimal(factor)
-            if factor < 0:
-                raise ValueError(f"expected non-negative factor, got {factor}")
-            self.amount /= factor
-            return self
-
-        def quantize(
-            self, rounding: RoundingPolicy = RoundingPolicy.HALF_EVEN
-        ) -> Money:
-            # TODO Maybe avoid rounding if self.amount is an integer? profile
-            rounded = self.amount.quantize(
-                Decimal("1"), rounding=as_decimal_rounding(rounding)
-            )
-            return Money(int(rounded), self.currency)
-
-        def __eq__(self, other: object) -> bool:
-            if not isinstance(other, Money._Unrounded):
-                return NotImplemented
-
-            return self.amount == other.amount and self.currency == other.currency
-
-        def __repr__(self) -> str:
-            return f"Money._Unrounded({self.amount}, {self.currency.ccy_code})"
 
     def __new__(cls, minor_units: int, currency: Currency) -> Self:
         if minor_units == 0:
@@ -231,7 +264,6 @@ class Money:
             for ratio in ratios
         )
         leftover = self - sum(shares, Money(0, self.currency))
-
         return AllocationResult(shares=shares, remainder=leftover)
 
     def __eq__(self, other: object) -> bool:
@@ -250,27 +282,41 @@ class Money:
             )
         return self._amount < other._amount
 
-    def __add__(self, other: object) -> Money:
-        if not isinstance(other, Money):
+    @overload
+    def __add__(self, other: Money) -> Money: ...
+
+    @overload
+    def __add__(self, other:Unrounded) -> Unrounded: ...
+
+    def __add__(self, other: MoneyLike) -> MoneyLike:
+        if not isinstance(other, (Money, Unrounded)):
             return NotImplemented
         if self.currency != other.currency:
             raise CurrencyMismatchError(
                 "Cannot add money amounts with different currencies."
             )
-        return Money(
-            self._amount + other._amount,
-            self.currency,
-        )
+        if isinstance(other, Money):
+            return Money(
+                self._amount + other._amount,
+                self.currency,
+            )
+        return Unrounded(self) + other
 
-    def __iadd__(self, other: object) -> Money:
+    def __iadd__(self, other: Money | Unrounded) -> Money | Unrounded:
         return self + other
 
-    def __sub__(self, other: object) -> Money:
+    @overload
+    def __sub__(self, other: Money) -> Money: ...
+
+    @overload
+    def __sub__(self, other: Unrounded) -> Unrounded: ...
+    
+    def __sub__(self, other: MoneyLike) -> MoneyLike:
         if not isinstance(other, Money):
             return NotImplemented
         return self + (-other)
 
-    def __isub__(self, other: object) -> Money:
+    def __isub__(self, other: Money | Unrounded) -> Money | Unrounded:
         return self - other
 
     def __neg__(self) -> Money:
@@ -278,21 +324,49 @@ class Money:
 
     def __divmod__(self, divisor: int) -> tuple[Money, Money]:
         quot, rem = divmod(self._amount, divisor)
-        return (Money(quot, currency=self.currency), Money(rem, currency=self.currency))
+        return (
+            Money(quot, currency=self.currency),
+            Money(rem, currency=self.currency)
+        )
 
-    def __mul__(self, factor: float | Decimal) -> Money._Unrounded:
-        unrounded = Money._Unrounded(self)
+    @overload
+    def __mul__(self, factor: int) -> Money: ...
+
+    @overload
+    def __mul__(self, factor: float) -> MoneyLike: ...
+
+    @overload
+    def __mul__(self, factor: Decimal) -> Unrounded: ...
+    
+    def __mul__(self, factor: Factor) -> MoneyLike:
+        if type(factor) is int:
+            return Money(self._amount * factor, self.currency)
+        unrounded = Unrounded(self)
         unrounded *= factor
         return unrounded
 
-    def __rmul__(self, factor: float | Decimal) -> Money._Unrounded:
+    def __rmul__(self, factor: Factor) -> MoneyLike:
         return self * factor
 
-    def __truediv__(self, factor: float | Decimal) -> Money._Unrounded:
-        unrounded = Money._Unrounded(self)
+    def __truediv__(self, factor: float | Decimal) -> Unrounded:
+        unrounded = Unrounded(self)
         unrounded /= factor
         return unrounded
 
+    @classmethod
+    def sum(cls, iterable: Iterable[Money]) -> Money:
+        """Bulk addition for Money."""
+        iterator = iter(iterable)
+        try:
+            first_item = next(iterator)
+        except StopIteration:
+            raise ValueError(
+                "Expected an iterable of Moneys objects, got an empty iterable"
+            ) from None
+        ccy = first_item.currency
+        total = first_item._amount + sum(mny._amount for mny in iterator)
+        return cls(total, ccy)
+    
     def to_decimal(self) -> Decimal:
         """
         Convert the monetary amount to its major-unit representation.

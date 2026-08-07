@@ -6,7 +6,7 @@ from hypothesis import strategies as st
 
 from isomoney import Ccy, Currency, Money
 from isomoney.exceptions import CurrencyMismatchError
-from isomoney.money import AllocationResult
+from isomoney.money import AllocationResult, Unrounded
 from isomoney.rounding import RoundingPolicy
 
 # TODO add two methods as_dict, from_dict
@@ -468,9 +468,9 @@ def test_money_str(amount, currency):
 
 
 @st.composite
-def _any_money_unrounded(draw) -> Money._Unrounded:
+def _any_money_unrounded(draw) -> Unrounded:
     amount = draw(st.integers(min_value=-(10**19), max_value=10**19))
-    return Money._Unrounded(Money(amount, Currency.of("USD")))
+    return Unrounded(Money(amount, Currency.of("USD")))
 
 
 decimals = st.decimals(
@@ -486,29 +486,29 @@ non_zero_decimals = decimals.filter(lambda d: d != 0)
 
 class Test_Money_Unrounded_Arithmetic_Operations:
     def test_init(self, money):
-        unrounded = Money._Unrounded(money())
-        assert unrounded.amount == Decimal("200")
+        unrounded = Unrounded(money())
+        assert unrounded._amount == Decimal("200")
         assert unrounded.currency == Currency.of("USD")
 
     @given(mny=_any_money_unrounded(), factor=decimals)
     def test_multiplication(self, mny, factor):
         result = mny * factor
-        assert result.amount == mny.amount * factor
-        assert result.amount == factor * mny.amount
+        assert result._amount == mny._amount * factor
+        assert result._amount == factor * mny._amount
 
     def test_multiplication_does_not_mutate_its_operand(self, money):
-        unrounded = Money._Unrounded(money())
-        original_amount = unrounded.amount
+        unrounded = Unrounded(money())
+        original_amount = unrounded._amount
         _ = unrounded * Decimal("1.5")
 
-        assert original_amount == unrounded.amount
+        assert original_amount == unrounded._amount
 
     @given(mny=_any_money_unrounded(), factor=decimals)
     def test_implace_multiplication(self, mny, factor):
-        expected_amount = mny.amount * factor
+        expected_amount = mny._amount * factor
         mny *= factor
 
-        assert mny.amount == expected_amount
+        assert mny._amount == expected_amount
 
     @given(mny=_any_money_unrounded(), left=decimals, right=decimals)
     def test_multiplication_is_associative_under_reasonable_input(
@@ -520,28 +520,28 @@ class Test_Money_Unrounded_Arithmetic_Operations:
         assert (mny * left) * right == mny * (left * right)
 
     def test_multiplication_rejects_negative_inputs(self, money):
-        unrounded = Money._Unrounded(money())
+        unrounded = Unrounded(money())
         with pytest.raises(ValueError, match=f"expected non-negative factor, got {-2}"):
             _ = unrounded * Decimal("-2")
 
     @given(mny=_any_money_unrounded(), factor=non_zero_decimals)
     def test_division(self, mny, factor):
         result = mny / factor
-        assert result.amount == mny.amount / factor
+        assert result._amount == mny._amount / factor
 
     def test_division_does_not_mutate_its_operand(self, money):
-        unrounded = Money._Unrounded(money())
-        original_amount = unrounded.amount
+        unrounded = Unrounded(money())
+        original_amount = unrounded._amount
         _ = unrounded / Decimal("1.5")
 
-        assert original_amount == unrounded.amount
+        assert original_amount == unrounded._amount
 
     @given(mny=_any_money_unrounded(), factor=non_zero_decimals)
     def test_implace_division(self, mny, factor):
-        expected_amount = mny.amount / factor
+        expected_amount = mny._amount / factor
         mny /= factor
 
-        assert mny.amount == expected_amount
+        assert mny._amount == expected_amount
 
     @given(mny=_any_money_unrounded())
     def test_division_by_one_return_the_same_amount(self, mny):
@@ -549,19 +549,19 @@ class Test_Money_Unrounded_Arithmetic_Operations:
         assert result == mny
 
     def test_division_rejects_negative_inputs(self, money):
-        unrounded = Money._Unrounded(money())
+        unrounded = Unrounded(money())
         with pytest.raises(ValueError, match=f"expected non-negative factor, got {-2}"):
             _ = unrounded / Decimal("-2")
 
     def test_division_by_zero_raise_division_error(self, money):
-        unrounded = Money._Unrounded(money())
+        unrounded = Unrounded(money())
         with pytest.raises(ZeroDivisionError):
             _ = unrounded / Decimal("0")
 
 
 class Test_Money_Unrounded_Quantize:
     def test_quantize_preserves_currency(self, money):
-        unrounded = Money._Unrounded(money())
+        unrounded = Unrounded(money())
         assert unrounded.currency == money().currency
 
     @pytest.mark.parametrize(
@@ -575,14 +575,14 @@ class Test_Money_Unrounded_Quantize:
         ],
     )
     def test_quantize_produce_expected_result(self, amount, rounding, expected, money):
-        unrounded = Money._Unrounded(money())
-        unrounded.amount = amount
+        unrounded = Unrounded(money())
+        unrounded._amount = amount
         assert unrounded.quantize(rounding) == money(expected)
 
     @given(amount=st.integers(-(10**19), 10**19), rounding=rounding())
     def test_quantize_integer_is_independant_of_rounding(self, amount, rounding, money):
-        unrounded = Money._Unrounded(money())
-        unrounded.amount = Decimal(amount)
+        unrounded = Unrounded(money())
+        unrounded._amount = Decimal(amount)
         assert unrounded.quantize() == money(amount)
 
     @given(n=st.integers(1, 100))
@@ -604,7 +604,7 @@ class Test_Money_Unrounded_Properties:
 
         expected = Decimal("299") * Decimal("15") / Decimal("0.15") * Decimal("25")
 
-        assert expr.amount == expected
+        assert expr._amount == expected
 
     def test_quantize_after_chained_operations(self, money):
         result = ((money(199) * Decimal("15")) / Decimal("0.25")).quantize()
