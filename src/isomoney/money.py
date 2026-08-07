@@ -1,7 +1,7 @@
-from collections.abc import Sequence
+from collections.abc import Iterable, Sequence
 from decimal import Decimal
 from functools import total_ordering
-from typing import Self, final, NamedTuple, Iterable, overload
+from typing import NamedTuple, Self, final, overload
 
 from isomoney.formatting import format as money_format
 
@@ -11,6 +11,7 @@ from .exceptions import CurrencyMismatchError
 from .rounding import RoundingPolicy, as_decimal_rounding
 
 __all__ = ["Money"]
+
 
 @final
 class Unrounded:
@@ -22,7 +23,7 @@ class Unrounded:
 
     def __add__(self, other: MoneyLike) -> Unrounded:
         new = self.__class__.__new__(self.__class__)
-        new._amount = self._amount 
+        new._amount = self._amount
         new.currency = self.currency
         new += other
         return new
@@ -31,15 +32,13 @@ class Unrounded:
         if not isinstance(other, (Unrounded, Money)):
             return NotImplemented
         if self.currency != other.currency:
-            raise CurrencyMismatchError(    
-                "Operands currencies must be equal"
-            )
+            raise CurrencyMismatchError("Operands currencies must be equal")
         self._amount += other._amount
         return self
 
     def __sub__(self, other: MoneyLike) -> Unrounded:
         new = self.__class__.__new__(self.__class__)
-        new._amount = self._amount 
+        new._amount = self._amount
         new.currency = self.currency
         new -= other
         return new
@@ -48,12 +47,10 @@ class Unrounded:
         if not isinstance(other, (Unrounded, Money)):
             return NotImplemented
         if self.currency != other.currency:
-            raise CurrencyMismatchError(    
-                "Operands currencies must be equal"
-            )
+            raise CurrencyMismatchError("Operands currencies must be equal")
         self._amount -= other._amount
         return self
-    
+
     def __mul__(self, factor: Factor) -> Unrounded:
         factor = _force_decimal(factor)
         new = self.__class__.__new__(self.__class__)
@@ -87,9 +84,7 @@ class Unrounded:
         self._amount /= factor
         return self
 
-    def quantize(
-        self, rounding: RoundingPolicy = RoundingPolicy.HALF_EVEN
-    ) -> Money:
+    def quantize(self, rounding: RoundingPolicy = RoundingPolicy.HALF_EVEN) -> Money:
         # TODO Maybe avoid rounding if self.amount is an integer? profile
         rounded = self._amount.quantize(
             Decimal("1"), rounding=as_decimal_rounding(rounding)
@@ -103,13 +98,16 @@ class Unrounded:
 
     def __repr__(self) -> str:
         return f"Unrounded({self._amount}, {self.currency.ccy_code})"
-        
+
+
 class AllocationResult(NamedTuple):
     shares: tuple[Money, ...]
     remainder: Money
 
+
 type MoneyLike = Money | Unrounded
 type Factor = int | float | Decimal
+
 
 @total_ordering
 @final
@@ -162,7 +160,7 @@ class Money:
 
     @classmethod
     def zero(cls, currency: Ccy | str) -> Money:
-        ccy = Currency.of(currency)
+        ccy = Currency.from_code(currency)
         return cls(0, ccy)
 
     @classmethod
@@ -206,7 +204,7 @@ class Money:
         >>> Money.from_major(29.99, Ccy.USD)
         Money(amount=2999, currency='USD')
         """
-        ccy = Currency.of(currency)
+        ccy = Currency.from_code(currency)
         decimal_amount = _force_decimal(amount)
         decimal_amount = cls._validate_amount(decimal_amount, ccy, rounding)
         minor_units = int(decimal_amount * (10**ccy.minor_units))
@@ -286,7 +284,7 @@ class Money:
     def __add__(self, other: Money) -> Money: ...
 
     @overload
-    def __add__(self, other:Unrounded) -> Unrounded: ...
+    def __add__(self, other: Unrounded) -> Unrounded: ...
 
     def __add__(self, other: MoneyLike) -> MoneyLike:
         if not isinstance(other, (Money, Unrounded)):
@@ -302,32 +300,23 @@ class Money:
             )
         return Unrounded(self) + other
 
-    def __iadd__(self, other: Money | Unrounded) -> Money | Unrounded:
-        return self + other
-
     @overload
     def __sub__(self, other: Money) -> Money: ...
 
     @overload
     def __sub__(self, other: Unrounded) -> Unrounded: ...
-    
+
     def __sub__(self, other: MoneyLike) -> MoneyLike:
         if not isinstance(other, Money):
             return NotImplemented
         return self + (-other)
-
-    def __isub__(self, other: Money | Unrounded) -> Money | Unrounded:
-        return self - other
 
     def __neg__(self) -> Money:
         return Money(-self._amount, currency=self.currency)
 
     def __divmod__(self, divisor: int) -> tuple[Money, Money]:
         quot, rem = divmod(self._amount, divisor)
-        return (
-            Money(quot, currency=self.currency),
-            Money(rem, currency=self.currency)
-        )
+        return (Money(quot, currency=self.currency), Money(rem, currency=self.currency))
 
     @overload
     def __mul__(self, factor: int) -> Money: ...
@@ -337,7 +326,7 @@ class Money:
 
     @overload
     def __mul__(self, factor: Decimal) -> Unrounded: ...
-    
+
     def __mul__(self, factor: Factor) -> MoneyLike:
         if type(factor) is int:
             return Money(self._amount * factor, self.currency)
@@ -366,7 +355,7 @@ class Money:
         ccy = first_item.currency
         total = first_item._amount + sum(mny._amount for mny in iterator)
         return cls(total, ccy)
-    
+
     def to_decimal(self) -> Decimal:
         """
         Convert the monetary amount to its major-unit representation.
@@ -425,7 +414,7 @@ class Money:
         ---------------
 
         h
-            Hide the currency.
+            Hide the currency symbol.
 
         i
             Display the ISO 4217 currency code.

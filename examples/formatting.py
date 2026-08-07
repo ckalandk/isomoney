@@ -1,11 +1,27 @@
 from decimal import Decimal
 
-from isomoney.formatting.formatspec import FormatSpec
-from isomoney.formatting.std_formatter import StdFormatter
+from isomoney import Money
+from isomoney.money import Unrounded
 
-std_formatter = StdFormatter()
-ctx = FormatSpec(compact=True, ccy_display="iso")
-result = std_formatter.format(
-    Decimal("12.00"), "USD", ctx, precision=2, omit_trailing_zeros=True
-)
-print(result)
+chair = Money.from_major(101, "JPY")
+desk = Money.from_major(104, "JPY")
+
+tax = Decimal("1.10")
+
+chair_taxed = chair * tax  # ¥111.10
+desk_taxed = desk * tax  # ¥114.40
+
+unrounded_total = chair_taxed + desk_taxed  # ¥225.50
+print(unrounded_total.quantize())  # 226
+total_amount2 = chair_taxed.quantize() + desk_taxed.quantize()
+print(total_amount2)
+
+print("-----------------------------------------------")
+result = chair + desk
+assert type(result) is Money
+
+result = chair + desk * 1.15
+assert type(result) is Unrounded
+
+result = chair * 2
+assert type(result) is Money

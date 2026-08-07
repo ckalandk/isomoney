@@ -24,3 +24,7 @@ docs/_build/
 
 # playground
 examples/lab.py
+profiling/
+
+# docs
+docs/

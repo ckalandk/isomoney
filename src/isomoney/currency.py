@@ -52,7 +52,7 @@ class Currency:
         object.__setattr__(self, "ccy_num_code", ccy.ccy_num_code)
 
     @classmethod
-    def of(cls, ccy: Ccy | str) -> Currency:
+    def from_code(cls, ccy: Ccy | str) -> Currency:
         """
         Construct a Currency instance from an ISO 4217 currency code.
 
@@ -75,9 +75,9 @@ class Currency:
         Examples
         --------
         >>> Currency.of(Ccy.USD)
-        Currency(ccy='USD')
+        Currency(ccy_code='USD')
         >>> Currency.of("USD")
-        Currency(ccy='USD')
+        Currency(ccy_code='USD')
         """
         if isinstance(ccy, str):
             try:

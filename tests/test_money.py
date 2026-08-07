@@ -15,13 +15,13 @@ from isomoney.rounding import RoundingPolicy
 
 
 def _usd_money(amount: int, currency: str = "USD") -> Money:
-    return Money(amount, Currency.of(currency))
+    return Money(amount, Currency.from_code(currency))
 
 
 @pytest.fixture(scope="session")
 def money():
     def _amount(amount=200, ccy="USD"):
-        return Money(amount, currency=Currency.of(ccy))
+        return Money(amount, currency=Currency.from_code(ccy))
 
     return _amount
 
@@ -190,7 +190,7 @@ def test_from_major_rejects_non_finite_decimals(svalue):
     code=ccy_code(),
 )
 def test_money_allocation_properties(ratios, amount, code):
-    mny = Money(amount, Currency.of(code.ccy_code))
+    mny = Money(amount, Currency.from_code(code.ccy_code))
     result = mny.allocate(ratios)
 
     # Sanity checks
@@ -231,7 +231,7 @@ def test_money_allocation_properties(ratios, amount, code):
             [1, 4],
             AllocationResult(
                 shares=(_usd_money(40), _usd_money(160)),
-                remainder=Money(1, Currency.of("USD")),
+                remainder=Money(1, Currency.from_code("USD")),
             ),
         ),
         pytest.param(
@@ -250,7 +250,7 @@ def test_money_allocation_properties(ratios, amount, code):
     ],
 )
 def test_money_allocation_examples(amount, ratios, expected):
-    mny = Money(amount, Currency.of("USD"))
+    mny = Money(amount, Currency.from_code("USD"))
     result = mny.allocate(ratios)
     assert result == expected
 
@@ -454,7 +454,7 @@ def test_money_to_decimal(money_, expected):
 
 @pytest.mark.parametrize("amount, currency", [(299, "USD"), (199, "KWD"), (220, "EUR")])
 def test_money_repr(amount, currency):
-    mny = Money(amount, Currency.of(currency))
+    mny = Money(amount, Currency.from_code(currency))
     assert repr(mny) == f"Money(amount={mny.to_decimal()}, currency='{currency}')"
 
 
@@ -463,14 +463,14 @@ def test_money_repr(amount, currency):
     [(299, "USD"), (199, "KWD"), (220, "EUR")],
 )
 def test_money_str(amount, currency):
-    mny = Money(amount, Currency.of(currency))
+    mny = Money(amount, Currency.from_code(currency))
     assert str(mny) == f"{mny.to_decimal()!s} {currency}"
 
 
 @st.composite
 def _any_money_unrounded(draw) -> Unrounded:
     amount = draw(st.integers(min_value=-(10**19), max_value=10**19))
-    return Unrounded(Money(amount, Currency.of("USD")))
+    return Unrounded(Money(amount, Currency.from_code("USD")))
 
 
 decimals = st.decimals(
@@ -488,7 +488,7 @@ class Test_Money_Unrounded_Arithmetic_Operations:
     def test_init(self, money):
         unrounded = Unrounded(money())
         assert unrounded._amount == Decimal("200")
-        assert unrounded.currency == Currency.of("USD")
+        assert unrounded.currency == Currency.from_code("USD")
 
     @given(mny=_any_money_unrounded(), factor=decimals)
     def test_multiplication(self, mny, factor):
