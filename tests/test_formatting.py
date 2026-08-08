@@ -5,7 +5,7 @@ import pytest
 from isomoney import Money, formatting
 from isomoney.formatting.base_formatter import CcyFormatter
 from isomoney.formatting.formatspec import FormatSpec
-from isomoney.rounding import RoundingPolicy
+from isomoney.rounding import RoundingMode
 
 
 class RecordingFormatter(CcyFormatter):
@@ -84,9 +84,9 @@ def test_money_dunder_format_with_empty_spec_use_formatter_default_format_spec(
 
 def test_money_format_basic_config(formatter):
     formatting.basicConfig(
-        locale="xx_XX",
+        local="xx_XX",
         precision=99,
-        rounding=RoundingPolicy.UNNECESSARY,
+        rounding=RoundingMode.UNNECESSARY,
         omit_trailing_zeros="False",  # type: ignore
     )
     money = Money.from_major(12.34, "USD")
@@ -94,7 +94,7 @@ def test_money_format_basic_config(formatter):
 
     assert formatter.locale == "xx_XX"
     assert formatter.calls[0]["precision"] == 99
-    assert formatter.calls[0]["rounding"] == RoundingPolicy.UNNECESSARY
+    assert formatter.calls[0]["rounding"] == RoundingMode.UNNECESSARY
     assert formatter.calls[0]["omit_trailing_zeros"] == "False"
 
 

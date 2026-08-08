@@ -2,7 +2,7 @@ import decimal
 from enum import Enum, auto
 
 
-class RoundingPolicy(Enum):
+class RoundingMode(Enum):
     CEILING = auto()
     FLOOR = auto()
     DOWN = auto()
@@ -16,15 +16,16 @@ class RoundingPolicy(Enum):
     UNNECESSARY = auto()
 
 
-def as_decimal_rounding(policy: RoundingPolicy) -> str:
+def as_decimal_rounding(policy: RoundingMode) -> str:
+    """Map rounding from RoundingMode enum to python Decimal rounding"""
     _decimal_map = {
-        RoundingPolicy.CEILING: decimal.ROUND_CEILING,
-        RoundingPolicy.FLOOR: decimal.ROUND_FLOOR,
-        RoundingPolicy.DOWN: decimal.ROUND_DOWN,
-        RoundingPolicy.UP: decimal.ROUND_UP,
-        RoundingPolicy.HALF_EVEN: decimal.ROUND_HALF_EVEN,
-        RoundingPolicy.HALF_DOWN: decimal.ROUND_HALF_DOWN,
-        RoundingPolicy.HALF_UP: decimal.ROUND_HALF_UP,
+        RoundingMode.CEILING: decimal.ROUND_CEILING,
+        RoundingMode.FLOOR: decimal.ROUND_FLOOR,
+        RoundingMode.DOWN: decimal.ROUND_DOWN,
+        RoundingMode.UP: decimal.ROUND_UP,
+        RoundingMode.HALF_EVEN: decimal.ROUND_HALF_EVEN,
+        RoundingMode.HALF_DOWN: decimal.ROUND_HALF_DOWN,
+        RoundingMode.HALF_UP: decimal.ROUND_HALF_UP,
     }
     try:
         return _decimal_map[policy]

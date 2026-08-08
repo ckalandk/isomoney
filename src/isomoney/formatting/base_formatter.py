@@ -1,12 +1,14 @@
 from abc import ABC, abstractmethod
 from decimal import Decimal
 
-from isomoney.rounding import RoundingPolicy
+from isomoney.rounding import RoundingMode
 
 from .formatspec import Display, FormatSpec
 
 
 class CcyFormatter(ABC):
+    """Base class for all Money's backend formatter"""
+
     def __init__(self, locale: str):
         self._locale = locale
         self._default_spec = FormatSpec()
@@ -42,7 +44,7 @@ class CcyFormatter(ABC):
         ctx: FormatSpec,
         *,
         precision: int,
-        rounding: RoundingPolicy,
+        rounding: RoundingMode,
         omit_trailing_zeros: bool,
     ) -> str:
         raise NotImplementedError

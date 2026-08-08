@@ -4,7 +4,7 @@ import re
 from typing import Literal
 
 from isomoney.exceptions import InvalidFormatSpecError
-from isomoney.rounding import RoundingPolicy
+from isomoney.rounding import RoundingMode
 
 from .base_formatter import CcyFormatter
 from .formatspec import FormatSpec
@@ -31,7 +31,7 @@ class MoneyFormat:
         self,
         *,
         precision: int | None = None,
-        rounding: RoundingPolicy = RoundingPolicy.HALF_UP,
+        rounding: RoundingMode = RoundingMode.HALF_UP,
         omit_trailing_zeros: bool = True,
         formatter: CcyFormatter | None = None,
     ) -> None:

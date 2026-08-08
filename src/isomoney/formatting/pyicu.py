@@ -3,23 +3,23 @@ import decimal
 import icu  # pyright: ignore[reportMissingImports]
 
 from isomoney.exceptions import InvalidFormatSpecError
-from isomoney.rounding import RoundingPolicy
+from isomoney.rounding import RoundingMode
 
 from .base_formatter import CcyFormatter
 from .formatspec import FormatSpec
 
 _icu_rounding_map = {
-    RoundingPolicy.CEILING: icu.DecimalFormat.kRoundCeiling,  #
-    RoundingPolicy.FLOOR: icu.DecimalFormat.kRoundFloor,  #
-    RoundingPolicy.DOWN: icu.DecimalFormat.kRoundDown,  #
-    RoundingPolicy.UP: icu.DecimalFormat.kRoundUp,  #
-    RoundingPolicy.HALF_EVEN: icu.DecimalFormat.kRoundHalfEven,  #
-    RoundingPolicy.HALF_DOWN: icu.DecimalFormat.kRoundHalfDown,  #
-    RoundingPolicy.HALF_UP: icu.DecimalFormat.kRoundHalfUp,  #
-    RoundingPolicy.HALF_ODD: icu.UNumberFormatRoundingMode.HALF_ODD,
-    RoundingPolicy.HALF_CEILING: icu.UNumberFormatRoundingMode.HALF_CEILING,
-    RoundingPolicy.HALF_FLOOR: icu.UNumberFormatRoundingMode.HALF_FLOOR,
-    RoundingPolicy.UNNECESSARY: icu.UNumberFormatRoundingMode.UNNECESSARY,
+    RoundingMode.CEILING: icu.DecimalFormat.kRoundCeiling,  #
+    RoundingMode.FLOOR: icu.DecimalFormat.kRoundFloor,  #
+    RoundingMode.DOWN: icu.DecimalFormat.kRoundDown,  #
+    RoundingMode.UP: icu.DecimalFormat.kRoundUp,  #
+    RoundingMode.HALF_EVEN: icu.DecimalFormat.kRoundHalfEven,  #
+    RoundingMode.HALF_DOWN: icu.DecimalFormat.kRoundHalfDown,  #
+    RoundingMode.HALF_UP: icu.DecimalFormat.kRoundHalfUp,  #
+    RoundingMode.HALF_ODD: icu.UNumberFormatRoundingMode.HALF_ODD,
+    RoundingMode.HALF_CEILING: icu.UNumberFormatRoundingMode.HALF_CEILING,
+    RoundingMode.HALF_FLOOR: icu.UNumberFormatRoundingMode.HALF_FLOOR,
+    RoundingMode.UNNECESSARY: icu.UNumberFormatRoundingMode.UNNECESSARY,
 }
 
 
@@ -28,7 +28,7 @@ def _build_icu_currency_formatter(
     locale: str,
     ctx: FormatSpec,
     precision: int = 2,
-    rounding: RoundingPolicy = RoundingPolicy.HALF_EVEN,
+    rounding: RoundingMode = RoundingMode.HALF_EVEN,
     omit_trailing_zeros: bool = False,
 ) -> icu.NumberFormatter:
     """
@@ -112,7 +112,7 @@ class IcuFormatter(CcyFormatter):
         ctx: FormatSpec,
         *,
         precision: int,
-        rounding: RoundingPolicy,
+        rounding: RoundingMode,
         omit_trailing_zeros: bool,
     ) -> str:
         formatter = _build_icu_currency_formatter(

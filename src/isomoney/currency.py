@@ -74,9 +74,9 @@ class Currency:
 
         Examples
         --------
-        >>> Currency.of(Ccy.USD)
+        >>> Currency.from_code(Ccy.USD)
         Currency(ccy_code='USD')
-        >>> Currency.of("USD")
+        >>> Currency.from_code("USD")
         Currency(ccy_code='USD')
         """
         if isinstance(ccy, str):

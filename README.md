@@ -2,18 +2,24 @@
 
 # isomoney
 
-**isomoney** is a Python library for representing and formatting money and currencies in a predictable, type-safe, and ISO-compliant way.
+**isomoney** is a strongly typed Python library for representing and manipulating monetary
+values with ISO 4217-compliant currencies and explicit rounding semantics.
 
-The project aims to provide immutable money objects, ISO 4217 currency support, locale-aware formatting, allocation utilities, and a clean formatting abstraction that can work with multiple internationalization backends.
+* **SO 4217 compliance** — currencies are represented with their standardized codes and minor-unit definitions, while Money uses integer minor units for exact monetary representation.
+
+* **Explicit rounding** — monetary rounding is never performed implicitly during arithmetic.
+Rounding occurs only when explicitly requested by the application.
+(Note: Intermediate arithmetic remains bound by the standard limits of Python's underlying decimal context. See the [Guide] for technical details)."
 
 ## Features
 
 * ISO 4217 currency definitions
 * Immutable `Money` type
 * Precise decimal arithmetic
+* Explicit rounding semantics.
 * Locale-aware currency formatting
 * Pluggable formatting backends
-* Custom formatting specification
+* Custom format specification
 
 ## Status
 

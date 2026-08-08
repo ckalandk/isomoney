@@ -7,7 +7,7 @@ from hypothesis import strategies as st
 from isomoney import Ccy, Currency, Money
 from isomoney.exceptions import CurrencyMismatchError
 from isomoney.money import AllocationResult, Unrounded
-from isomoney.rounding import RoundingPolicy
+from isomoney.rounding import RoundingMode
 
 # TODO add two methods as_dict, from_dict
 # use this format for dict {"amount", "2.99", "currency", "USD"}
@@ -53,8 +53,8 @@ def ccy_code(draw):
 @st.composite
 def rounding(draw):
     return draw(
-        st.from_type(RoundingPolicy).filter(
-            lambda rounding: rounding != RoundingPolicy.UNNECESSARY
+        st.from_type(RoundingMode).filter(
+            lambda rounding: rounding != RoundingMode.UNNECESSARY
         )
     )
 
@@ -150,7 +150,7 @@ def test_from_major(amount, currency, expected):
 def test_from_major_round_numbers_with_more_then_minor_unit_decimals(
     amount, currency, expected
 ):
-    mny = Money.from_major(amount, currency, rounding=RoundingPolicy.UP)
+    mny = Money.from_major(amount, currency, rounding=RoundingMode.UP)
     assert mny.to_decimal() == expected
 
 
@@ -567,11 +567,11 @@ class Test_Money_Unrounded_Quantize:
     @pytest.mark.parametrize(
         "amount, rounding, expected",
         [
-            (Decimal("123.4"), RoundingPolicy.HALF_EVEN, 123),
-            (Decimal("123.5"), RoundingPolicy.HALF_EVEN, 124),
-            (Decimal("124.5"), RoundingPolicy.HALF_EVEN, 124),
-            (Decimal("123.5"), RoundingPolicy.HALF_UP, 124),
-            (Decimal("123.5"), RoundingPolicy.DOWN, 123),
+            (Decimal("123.4"), RoundingMode.HALF_EVEN, 123),
+            (Decimal("123.5"), RoundingMode.HALF_EVEN, 124),
+            (Decimal("124.5"), RoundingMode.HALF_EVEN, 124),
+            (Decimal("123.5"), RoundingMode.HALF_UP, 124),
+            (Decimal("123.5"), RoundingMode.DOWN, 123),
         ],
     )
     def test_quantize_produce_expected_result(self, amount, rounding, expected, money):

@@ -1,13 +1,14 @@
 import pytest
+
 icu = pytest.importorskip("icu")
+
+from decimal import Decimal
+from functools import partial
 
 from isomoney.exceptions import InvalidFormatSpecError
 from isomoney.formatting.formatspec import FormatSpec
 from isomoney.formatting.pyicu import IcuFormatter
-from isomoney.rounding import RoundingPolicy
-
-from decimal import Decimal
-from functools import partial
+from isomoney.rounding import RoundingMode
 
 
 def normalize_space(s: str) -> str:
@@ -22,7 +23,7 @@ class TestIcuFormatter:
         _format = partial(
             fmt.format,
             precision=2,
-            rounding=RoundingPolicy.HALF_EVEN,
+            rounding=RoundingMode.HALF_EVEN,
             omit_trailing_zeros=False,
         )
         fmt.format = _format  # type: ignore
@@ -34,7 +35,7 @@ class TestIcuFormatter:
         _format = partial(
             fmt.format,
             precision=2,
-            rounding=RoundingPolicy.HALF_EVEN,
+            rounding=RoundingMode.HALF_EVEN,
             omit_trailing_zeros=False,
         )
         fmt.format = _format  # type: ignore
@@ -150,21 +151,21 @@ class TestIcuFormatter:
     @pytest.mark.parametrize(
         "amount, policy, expected",
         [
-            (Decimal("12.345"), RoundingPolicy.DOWN, "$12.34"),  # Truncate
-            (Decimal("12.345"), RoundingPolicy.UP, "$12.35"),  # Away from zero
+            (Decimal("12.345"), RoundingMode.DOWN, "$12.34"),  # Truncate
+            (Decimal("12.345"), RoundingMode.UP, "$12.35"),  # Away from zero
             (
                 Decimal("12.345"),
-                RoundingPolicy.HALF_EVEN,
+                RoundingMode.HALF_EVEN,
                 "$12.34",
             ),  # Banker's rounding (even)
             (
                 Decimal("12.355"),
-                RoundingPolicy.HALF_EVEN,
+                RoundingMode.HALF_EVEN,
                 "$12.36",
             ),  # Banker's rounding (even)
             (
                 Decimal("12.345"),
-                RoundingPolicy.HALF_UP,
+                RoundingMode.HALF_UP,
                 "$12.35",
             ),  # Standard math round
         ],

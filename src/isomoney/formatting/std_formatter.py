@@ -3,10 +3,10 @@ from decimal import Decimal
 from isomoney._decimal import _enforce_precision, _remove_trailing_zeros
 from isomoney.currency import Ccy
 from isomoney.exceptions import InvalidFormatSpecError
-from isomoney.rounding import RoundingPolicy
+from isomoney.rounding import RoundingMode
 
 from .base_formatter import CcyFormatter
-from .formatspec import FormatSpec
+from .formatspec import Display, FormatSpec
 
 __all__ = ["StdFormatter"]
 
@@ -58,6 +58,21 @@ class StdFormatter(CcyFormatter):
             "Use BabelFormatter or IcuFormatter instead."
         )
 
+    def configure(
+        self,
+        *,
+        compact: bool = False,
+        accounting: bool = False,
+        group_separator: bool = True,
+        ccy_display: Display = "iso",
+    ) -> None:
+        self._default_spec = FormatSpec(
+            compact=compact,
+            accounting=accounting,
+            group_separator=group_separator,
+            ccy_display=ccy_display,
+        )
+
     def format(
         self,
         amount: Decimal,
@@ -65,7 +80,7 @@ class StdFormatter(CcyFormatter):
         ctx: FormatSpec,
         *,
         precision: int = 2,
-        rounding: RoundingPolicy = RoundingPolicy.HALF_EVEN,
+        rounding: RoundingMode = RoundingMode.HALF_EVEN,
         omit_trailing_zeros: bool = False,
     ) -> str:
         if ctx.ccy_display == "symbol":

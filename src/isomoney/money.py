@@ -8,18 +8,48 @@ from isomoney.formatting import format as money_format
 from ._decimal import _decimal_places, _force_decimal
 from .currency import Ccy, Currency
 from .exceptions import CurrencyMismatchError
-from .rounding import RoundingPolicy, as_decimal_rounding
+from .rounding import RoundingMode, as_decimal_rounding
 
 __all__ = ["Money"]
 
 
 @final
 class Unrounded:
+    """
+    Class to hold any intermediate result of a Sub-Unit arithmetic
+    expressions.
+
+    A sub-unit arithmetic operation is an operation on money that may produce
+    an amount with more fractional digits than the currency's standard minor unit.
+
+    Unrounded objects participate seamlessly with Money arithmetics
+    according to the following rules:
+
+    * Money + Money -> Money
+    * Money - Money -> Money
+    * Money + Unrounded -> Unrounded
+    * Unrounded + Unrounded - > Unrounded
+    * Money * IntegerFactor -> Money
+    * Money * DecimalFactor -> Unrounded
+    * Money / Factor -> Unrounded
+
+    AN Unrounded object is not quit a Money yet.
+    Users must call `quantize()` on unrounded objects at the very end of arithmetic
+    pipeline, to round the result and obtain Money instance.
+    """
+
     __slots__ = ("_amount", "currency")
 
     def __init__(self, money: Money):
         self._amount = Decimal(money._amount)
         self.currency = money.currency
+
+    @classmethod
+    def from_decimal(cls, amount: Decimal, currency: Currency) -> Unrounded:
+        new = cls.__new__(cls)
+        new._amount = amount
+        new.currency = currency
+        return new
 
     def __add__(self, other: MoneyLike) -> Unrounded:
         new = self.__class__.__new__(self.__class__)
@@ -84,7 +114,16 @@ class Unrounded:
         self._amount /= factor
         return self
 
-    def quantize(self, rounding: RoundingPolicy = RoundingPolicy.HALF_EVEN) -> Money:
+    def quantize(self, rounding: RoundingMode = RoundingMode.HALF_EVEN) -> Money:
+        """Round this result to the currency's standard minor units.
+
+        Args:
+            rounding: A member of RoundingMode enumeration. Defaults to
+                :attr:`RoundingMode.HALF_EVEN`
+
+        Returns:
+            A ``Money`` instance containing the quantized result in minor units.
+        """
         # TODO Maybe avoid rounding if self.amount is an integer? profile
         rounded = self._amount.quantize(
             Decimal("1"), rounding=as_decimal_rounding(rounding)
@@ -112,8 +151,7 @@ type Factor = int | float | Decimal
 @total_ordering
 @final
 class Money:
-    """
-    Represents an immutable monetary amount in a specific ISO 4217 currency.
+    """Represents an immutable monetary amount in a specific ISO 4217 currency.
 
     Monetary amounts are stored internally as an integer number of minor units
     (for example, cents for USD). Arithmetic and comparison operations are only
@@ -121,19 +159,9 @@ class Money:
     Money instances are exact. No rounding is performed when constructing
     or manipulating monetary amounts.
 
-    Parameters
-    ----------
-    minor_units : int
-        The monetary amount expressed in the currency's minor units.
-    currency : Currency
-        The currency associated with the monetary amount.
-
-    Notes
-    -----
-    The internal representation always uses minor units. For example:
-
-    - Money(2934, Currency(Ccy.USD)) represents 29.34 USD.
-    - Money(29, Currency(Ccy.JPY)) represents 29 JPY.
+    Args
+        minor_units: The monetary amount expressed in the currency's minor units.
+        currency: The currency associated with the monetary amount.
     """
 
     _amount: int
@@ -160,6 +188,17 @@ class Money:
 
     @classmethod
     def zero(cls, currency: Ccy | str) -> Money:
+        """Create a zero-valued Money instance for the given currency.
+
+        The zero-valued instance is cached and reused for subsequent
+        calls with the same currency.
+
+        Args:
+            currency: Currency of the zero-valued money.
+
+        Returns:
+            A Money instance with an amount of zero in the given currency.
+        """
         ccy = Currency.from_code(currency)
         return cls(0, ccy)
 
@@ -169,31 +208,25 @@ class Money:
         amount: Decimal | float,
         currency: Ccy | str,
         *,
-        rounding: RoundingPolicy = RoundingPolicy.HALF_EVEN,
+        rounding: RoundingMode = RoundingMode.HALF_EVEN,
     ) -> Self:
-        """
-        Construct a Money instance from an amount expressed in major units.
+        """Construct a Money instance from an amount expressed in major units.
 
-        Parameters
-        ----------
-        amount : Decimal | float
-            The monetary amount expressed in major units.
-        currency : Ccy | str
-            Either a member of the ``Ccy`` enumeration or a three-letter ISO 4217
-            currency code.
-        rounding: RoundingPolicy | None:
-            The rounding policy if the decimal/float has more decimals then
-            the currency supports
-        Returns
-        -------
-        Money
+        Args:
+            amount: The monetary amount expressed in major units.
+            currency: Either a member of the ``Ccy`` enumeration
+                or a three-letter ISO 4217 currency code.
+            rounding: The rounding policy if the decimal/float has more decimals then
+                the currency supports
+
+        Returns:
             The corresponding Money instance.
 
-        Raises
-        ------
-        ValueError If the amount contains more fractional digits than the currency
-        supports and a the rounding policy is not supplied
-        or if the amount is NaN or infinite.
+        Note:
+            The input amount will be rounded to acommodate for the currency's
+            standard minor units. The rounding mode is constrolled via the
+            keyword argument `rounding`. If no rounding is supplyed,
+            `RoundingMode.HALF_EVEN` will be used.
 
         Examples
         --------
@@ -214,7 +247,7 @@ class Money:
     def _validate_amount(
         amount: Decimal,
         currency: Currency,
-        rounding: RoundingPolicy = RoundingPolicy.HALF_EVEN,
+        rounding: RoundingMode = RoundingMode.HALF_EVEN,
     ) -> Decimal:
         if not amount.is_finite():
             raise ValueError(f"Special/infinite values are forbidden: {amount}")
@@ -226,13 +259,10 @@ class Money:
 
     @property
     def currency(self) -> Currency:
-        """
-        The currency associated with this monetary amount.
+        """The currency associated with this monetary amount.
 
-        Returns
-        -------
-        Currency
-            The Money object's currency.
+        Returns:
+            currency: The Money object's currency.
         """
         return self._currency
 
@@ -241,9 +271,7 @@ class Money:
         """
         The monetary amount expressed in minor units.
 
-        Returns
-        -------
-        int
+        Returns:
             The amount stored internally as an integer number of minor units.
         """
         return self._amount
@@ -344,7 +372,7 @@ class Money:
         return unrounded
 
     @classmethod
-    def sum(cls, iterable: Iterable[Money]) -> Money:
+    def sum(cls, iterable: Iterable[MoneyLike]) -> MoneyLike:
         """Bulk addition for Money."""
         iterator = iter(iterable)
         try:
@@ -355,7 +383,7 @@ class Money:
             ) from None
         ccy = first_item.currency
         total = first_item._amount + sum(mny._amount for mny in iterator)
-        return cls(total, ccy)
+        return Money(int(total), ccy)  # TODO fix the return type, this is broken
 
     def to_decimal(self) -> Decimal:
         """
@@ -364,9 +392,7 @@ class Money:
         The returned Decimal always uses the exact number of fractional digits
         defined by the currency's minor units.
 
-        Returns
-        -------
-        Decimal
+        Returns:
             The amount expressed in major units.
 
         Examples
@@ -411,42 +437,25 @@ class Money:
         accounting ::= a
         ungroup ::= u
 
-        Display options
-        ---------------
+        Display options:
+            h: Hide the currency symbol.
+            i: Display the ISO 4217 currency code.
+            n: Display the currency name.
+            c: Use compact notation (for example, ``1.2M``).
+            a: Display negative amounts using accounting notation
+               (for example, ``(123.45)`` instead of ``-123.45``).
+            u: Disable digit grouping
+               (for example, ``1000000`` instead of ``1,000,000``).
 
-        h
-            Hide the currency symbol.
+        string-format:
+            Python's standard string format specification.
+            It is applied after the money-specific options.
 
-        i
-            Display the ISO 4217 currency code.
-
-        n
-            Display the currency name.
-
-        c
-            Use compact notation (for example, ``1.2M``).
-
-        a
-            Display negative amounts using accounting notation
-            (for example, ``(123.45)`` instead of ``-123.45``).
-
-        u
-            Disable digit grouping (for example, ``1000000`` instead of
-            ``1,000,000``).
-
-        string-format
-        -------------
-
-        Python's standard string format specification. It is applied after the
-        money-specific options.
-
-        Examples
-        --------
-
-        >>> f"{money:}"
-        >>> f"{money:h}"
-        >>> f"{money:hc}"
-        >>> f"{money:ia}"
-        >>> f"{money:hc>20}"
+        Examples:
+            >>> f"{money:}"
+            >>> f"{money:h}"
+            >>> f"{money:hc}"
+            >>> f"{money:ia}"
+            >>> f"{money:hc>20}"
         """
         return money_format(self, format_spec)

@@ -11,7 +11,7 @@ PEP 8 won.:-)
 from collections.abc import Callable
 from typing import Any, TypeVar
 
-from isomoney.rounding import RoundingPolicy
+from isomoney.rounding import RoundingMode
 
 from .base_formatter import CcyFormatter
 from .moneyformat import MoneyFormat
@@ -50,13 +50,13 @@ def format(money: _SupportMoneyOperation, format_spec: str) -> str:
 
 def basicConfig(
     *,
-    locale: str | None = None,
+    local: str | None = None,
     precision: int = 2,
-    rounding: RoundingPolicy = RoundingPolicy.HALF_EVEN,
+    rounding: RoundingMode = RoundingMode.HALF_EVEN,
     omit_trailing_zeros: bool = True,
 ) -> None:
-    if locale is not None:
-        _default.backend_formatter.locale = locale
+    if local is not None:
+        _default.backend_formatter.locale = local
     _default.precision = precision
     _default.rounding = rounding
     _default.omit_trailing_zeros = omit_trailing_zeros

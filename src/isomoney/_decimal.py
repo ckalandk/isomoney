@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from isomoney.rounding import RoundingPolicy, as_decimal_rounding
+from isomoney.rounding import RoundingMode, as_decimal_rounding
 
 
 def _decimal_places(x: Decimal) -> int:
@@ -34,7 +34,7 @@ def _remove_trailing_zeros(value: Decimal, precision: int = 2) -> Decimal:
 
 
 def _enforce_precision(
-    value: Decimal, precision: int, rounding: RoundingPolicy
+    value: Decimal, precision: int, rounding: RoundingMode
 ) -> Decimal:
     return value.quantize(
         Decimal(f"1.{'0' * precision}"), rounding=as_decimal_rounding(rounding)

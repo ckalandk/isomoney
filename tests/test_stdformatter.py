@@ -6,7 +6,7 @@ import pytest
 from isomoney.exceptions import InvalidFormatSpecError
 from isomoney.formatting.formatspec import FormatSpec
 from isomoney.formatting.std_formatter import StdFormatter
-from isomoney.rounding import RoundingPolicy
+from isomoney.rounding import RoundingMode
 
 
 class TestStdFormatter:
@@ -16,7 +16,7 @@ class TestStdFormatter:
         _format = partial(
             fmt.format,
             precision=2,
-            rounding=RoundingPolicy.HALF_EVEN,
+            rounding=RoundingMode.HALF_EVEN,
             omit_trailing_zeros=False,
         )
         fmt.format = _format
@@ -135,21 +135,21 @@ class TestStdFormatter:
     @pytest.mark.parametrize(
         "amount, policy, expected",
         [
-            (Decimal("12.345"), RoundingPolicy.DOWN, "12.34"),
-            (Decimal("12.345"), RoundingPolicy.UP, "12.35"),
+            (Decimal("12.345"), RoundingMode.DOWN, "12.34"),
+            (Decimal("12.345"), RoundingMode.UP, "12.35"),
             (
                 Decimal("12.345"),
-                RoundingPolicy.HALF_EVEN,
+                RoundingMode.HALF_EVEN,
                 "12.34",
             ),
             (
                 Decimal("12.355"),
-                RoundingPolicy.HALF_EVEN,
+                RoundingMode.HALF_EVEN,
                 "12.36",
             ),
             (
                 Decimal("12.345"),
-                RoundingPolicy.HALF_UP,
+                RoundingMode.HALF_UP,
                 "12.35",
             ),
         ],
