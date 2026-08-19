@@ -1,0 +1,38 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+
+# Test/tool caches
+htmlcov/
+.pytest_cache/
+.ruff_cache/
+*.egg-info
+.todo
+.mypy_cache
+.hypothesis
+.coverage
+.tox/
+
+# Virtual environments
+.venv
+
+# Generated documentation
+docs/_build/
+
+# playground
+examples/lab.py
+profiling/
+extra/
+
+# Coverage reports
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+*.cover
+
+# vscode
+.vscode/

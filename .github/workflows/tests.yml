@@ -1,0 +1,108 @@
+name: Tests
+
+on:
+  push:
+    branches: [ main, master ]
+    paths-ignore: &ignored_paths
+      - "docs/**"
+      - "examples/**"
+      - "scripts/**"
+      - "profiling/**"
+      - .pre-commit-config.yaml
+      - README.md
+      - LICENSE
+  pull_request:
+    branches: [ main, master ]
+    paths-ignore: *ignored_paths
+
+  workflow_dispatch:
+
+jobs:
+  lint:
+    name: Ruff
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9
+        with:
+          enable-cache: true
+          version: latest
+
+      - name: Install Python
+        run: uv python install
+
+      - name: Install dependencies
+        run: uv sync --dev
+
+      - name: Ruff check
+        run: uv run ruff check .
+
+      - name: Ruff format
+        run: uv run ruff format --check .
+
+  type-check:
+    name: Mypy
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses:  astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9
+        with:
+          enable-cache: true
+          version: latest
+
+      - name: Install Python
+        run: uv python install
+
+      - name: Install system dependencies for PyICU
+        run: sudo apt-get update && sudo apt-get install -y pkg-config libicu-dev
+
+      - name: Install dependencies
+        run: uv sync --all-extras --dev
+
+      - name: Run mypy
+        run: uv run mypy src
+
+  tests:
+    name: Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12", "3.13", "3.14"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses:  astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9
+        with:
+          enable-cache: true
+          version: "latest"
+
+      - name: Set up Python ${{ matrix.python-version }}
+        run: uv python install ${{ matrix.python-version }}
+
+      - name: Install system dependencies for PyICU
+        run: sudo apt-get update && sudo apt-get install -y pkg-config libicu-dev
+
+      - name: Install dependencies
+        run: uv sync --all-extras --dev
+
+      - name: Run tests
+        run:  |
+          uv run pytest \
+          --cov \
+          --cov-report=xml \
+          --cov-fail-under=80
+
+      - name: Upload results to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}

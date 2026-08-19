@@ -1,0 +1,108 @@
+import pytest
+from hypothesis import given
+from hypothesis import strategies as st
+
+from isomoney.allocation import allocate, allocate_base, hamilton, round_robin
+from isomoney.money import Money
+
+amounts_st = st.integers(min_value=0, max_value=1_000_000_000)
+
+ratios_st = st.lists(st.integers(min_value=0, max_value=10_000), min_size=1).filter(
+    lambda r: sum(r) > 0
+)
+
+
+@given(amount=amounts_st, ratios=ratios_st)
+def test_hamilton_never_loses_pennies(amount: int, ratios: list[int]):
+    result = hamilton(amount, ratios)
+
+    assert len(result) == len(ratios), "Must return exactly one share per ratio"
+    assert sum(result) == amount, (
+        "The sum of shares must exactly equal the original amount"
+    )
+    for i, ratio in enumerate(ratios):
+        if ratio == 0:
+            assert result[i] == 0
+
+
+@given(amount=amounts_st, ratios=ratios_st)
+def test_round_robin_never_loses_pennies(amount: int, ratios: list[int]):
+    result = round_robin(amount, ratios)
+
+    assert len(result) == len(ratios)
+    assert sum(result) == amount
+    for i, ratio in enumerate(ratios):
+        if ratio == 0:
+            assert result[i] == 0
+
+
+@pytest.mark.parametrize(
+    "amount, ratios, expected_hamilton, expected_rr",
+    [
+        # Even split: remainders are tied
+        (100, [1, 1, 1], [34, 33, 33], [34, 33, 33]),
+        # 100 split by [3, 4, 4]
+        # RR: base is [27, 36, 36], 1 leftover penny goes to index 0
+        # Hamilton: fractions are [0.27, 0.36, 0.36]. 1 penny goes to index 1
+        (100, [3, 4, 4], [27, 37, 36], [28, 36, 36]),
+        # Zero ratios involved
+        (10, [1, 0, 1], [5, 0, 5], [5, 0, 5]),
+        (100, [0, 1, 1], [0, 50, 50], [0, 50, 50]),
+        # Zero money
+        (0, [1, 2, 3], [0, 0, 0], [0, 0, 0]),
+    ],
+)
+def def_test_strategies_with_known_data(amount, ratios, expected_hamilton, expected_rr):
+    assert hamilton(amount, ratios) == expected_hamilton
+    assert round_robin(amount, ratios) == expected_rr
+
+
+def test_allocate_base_preserves_remainder():
+    money = Money.from_major(1, "USD")
+    ratios = [1, 1, 1]
+
+    shares, remainder = allocate_base(money, ratios)
+
+    assert len(shares) == 3
+    assert all(isinstance(s, Money) for s in shares)
+    assert [s.minor_units for s in shares] == [33, 33, 33]
+
+    assert isinstance(remainder, Money)
+    assert remainder.minor_units == 1
+    assert remainder._currency.ccy_code == "USD"
+
+
+def test_allocate_integration_default_strategy():
+    money = Money.from_major(1, "USD")
+    result = allocate(money, [3, 4, 4])
+
+    assert all(isinstance(s, Money) for s in result)
+    assert [s.minor_units for s in result] == [27, 37, 36]
+
+
+def test_allocate_integration_explicit_strategy():
+    money = Money.from_major(1, "USD")
+    result = allocate(money, [3, 4, 4], strategy=round_robin)
+
+    assert [s.minor_units for s in result] == [28, 36, 36]
+
+
+def test_allocation_validations_trigger_correctly():
+    money = Money.from_major(10000, "USD")
+
+    # Empty ratio
+    with pytest.raises(ValueError, match="Sum of ratios must be greater than zero"):
+        allocate(money, [])
+
+    # Zero sum ratios
+    with pytest.raises(ValueError, match="Sum of ratios must be greater than zero"):
+        allocate(money, [0, 0, 0])
+
+    # Negative ratios
+    with pytest.raises(ValueError, match="Ratios cannot contain negative values"):
+        allocate(money, [1, -1])
+
+    # Negative money boundary
+    negative_money = Money.from_major(-50, "USD")
+    with pytest.raises(ValueError, match="Expected positive money"):
+        allocate(negative_money, [1, 1])
