@@ -3,10 +3,9 @@ from decimal import Decimal
 from isomoney._decimal import _enforce_precision
 from isomoney.currency import Ccy
 from isomoney.exceptions import InvalidFormatSpecError
-from isomoney.rounding import RoundingMode
 
 from .base_formatter import BaseFormatter
-from .formatspec import DisplayOpts, FormatSpec
+from .formatspec import FormatSpec
 
 __all__ = ["StdFormatter"]
 
@@ -43,38 +42,8 @@ class StdFormatter(BaseFormatter):
         super().__init__(locale)
         self._default_spec = FormatSpec(ccy_display="iso")
 
-    @property
-    def locale(self) -> str:
-        return super().locale
-
-    @locale.setter
-    def locale(self, value: str) -> None:
-        raise NotImplementedError(
-            "StdFormatter does not support locale-aware formatting. "
-            "Use BabelFormatter or IcuFormatter instead."
-        )
-
     def _validate_numbering_system(self, value: str | None) -> None:  # pragma: no cover
         pass
-
-    def configure(
-        self,
-        *,
-        compact: bool = False,
-        compact_precision: int = 1,
-        accounting: bool = False,
-        group_separator: bool = True,
-        ccy_display: DisplayOpts = "iso",
-        rounding: RoundingMode = RoundingMode.HALF_EVEN,
-    ) -> None:
-        super().configure(
-            compact=compact,
-            compact_precision=compact_precision,
-            accounting=accounting,
-            group_separator=group_separator,
-            ccy_display=ccy_display,
-            rounding=rounding,
-        )
 
     def format(
         self,

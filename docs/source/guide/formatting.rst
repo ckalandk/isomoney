@@ -155,10 +155,10 @@ Once the block exits, the original global settings are seamlessly restored.
 
 .. code-block:: python
 
-    from isomoney import Money
+    from isomoney import Money, RoundingMode
     from isomoney.formatting import local_format
 
-    price = Money("1250.555", "USD")
+    price = Money.from_major(1250, "USD")
 
     with local_format(locale="de_DE") as fmt:
         fmt.rounding = RoundingMode.HALF_UP

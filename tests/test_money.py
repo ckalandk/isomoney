@@ -506,6 +506,14 @@ class Test_Unrounded_Money:
         result = unrounded.__format__("h")
         assert result == "2.123"
 
+    def test_negation(self):
+        positive = UnroundedMoney.from_decimal("2.123", "USD")
+        zero = UnroundedMoney.from_decimal("0", "USD")
+        negative = UnroundedMoney.from_decimal("-2.123", "USD")
+
+        assert -zero == zero
+        assert -positive == negative
+
     @given(left=_any_money_unrounded(), right=_any_money_unrounded())
     def test_addition(self, left, right):
         result = left + right
@@ -525,6 +533,11 @@ class Test_Unrounded_Money:
         unrounded = UnroundedMoney(money(100))
         result = unrounded.__sub__(object())  # type: ignore
         assert result is NotImplemented
+
+    def test_reverse_substraction(self, money):
+        unrounded = UnroundedMoney(money(100))
+        mny = money(100)
+        assert unrounded.__rsub__(mny) == UnroundedMoney(money(0))
 
     @given(mny=_any_money_unrounded(), factor=decimals)
     def test_multiplication(self, mny, factor):

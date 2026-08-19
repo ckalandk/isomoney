@@ -1,11 +1,15 @@
 # pyright: reportGeneralTypeIssues=false
 # mypy: ignore-errors
+from copy import copy
+
 import pytest
 
 from isomoney import Money, formatting
 from isomoney.exceptions import InvalidFormatSpecError
+from isomoney.formatting._default import _FormatContext
 from isomoney.formatting.base_formatter import BaseFormatter
 from isomoney.formatting.formatspec import FormatSpec
+from isomoney.formatting.std_formatter import StdFormatter
 from isomoney.rounding import RoundingMode
 
 
@@ -49,6 +53,17 @@ def formatter():
     yield mock_formatter
 
     formatting._default._default.backend_formatter = original_formatter
+
+
+def test_format_context_internals():
+    ctx = _FormatContext(StdFormatter(), "xx_XX", "klingon")
+    assert ctx.backend_formatter.locale == "xx_XX"
+    assert ctx.backend_formatter.numbering_system == "klingon"
+    assert not ctx.compact
+    assert not ctx.accounting
+    assert ctx.display == "iso"
+    assert ctx.rounding == RoundingMode.HALF_EVEN
+    assert ctx.group_separator
 
 
 def test_money_format_forward_amount_and_currency_code(formatter):
@@ -152,7 +167,7 @@ def test_money_format_use_backend_rejects_invalid_args():
     with pytest.raises(TypeError) as exc:
         formatting.use_backend(FooFormatter())  # type: ignore
 
-    assert str(exc.value) == "backend_formatter must be a CcyFormatter instance."
+    assert str(exc.value) == "backend_formatter must be a BaseFormatter instance."
 
 
 def test_money_format_get_formatter(formatter):
@@ -233,7 +248,12 @@ def test_register_backend_rejects_already_existing_backend():
         formatting.register_backend("std", lambda: None)  # type: ignore
 
 
-def test_formatter_configure_do_not_affect_formatting_with_nonempty_format_spec():
+def test_config_ignored_with_spec(monkeypatch):
+    formatter = formatting.get_formatter()
+    temp_spec = copy(formatter._default_spec)
+
+    monkeypatch.setattr(formatter, "_default_spec", temp_spec)
+
     formatting.get_formatter().configure(
         compact=True, compact_precision=2, ccy_display="hidden", group_separator=True
     )
@@ -243,3 +263,16 @@ def test_formatter_configure_do_not_affect_formatting_with_nonempty_format_spec(
 
     result = formatting.format(mny, "iu")
     assert result == "USD\xa02123.95"
+
+
+def test_formatting_locale_format():
+    money = Money.from_major(-26123, "USD")
+    assert f"{money}" == "-USD\xa026,123.00"
+
+    with formatting.local_format() as fmt:
+        fmt.compact = True
+        fmt.accounting = True
+        fmt.compact_prec = 3
+        assert f"{money}" == "(USD\xa026.123K)"
+    # default should be restored
+    assert f"{money}" == "-USD\xa026,123.00"

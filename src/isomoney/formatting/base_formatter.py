@@ -44,21 +44,18 @@ class BaseFormatter(ABC):
     def configure(
         self,
         *,
-        ccy_display: DisplayOpts = "symbol",
-        compact: bool = False,
-        compact_precision: int = 1,
-        accounting: bool = False,
-        group_separator: bool = True,
-        rounding: RoundingMode = RoundingMode.HALF_EVEN,
+        ccy_display: DisplayOpts | None = None,
+        compact: bool | None = None,
+        compact_precision: int | None = None,
+        accounting: bool | None = None,
+        group_separator: bool | None = None,
+        rounding: RoundingMode | None = None,
     ) -> None:
-        self._default_spec = FormatSpec(
-            compact=compact,
-            compact_precision=compact_precision,
-            accounting=accounting,
-            group_separator=group_separator,
-            ccy_display=ccy_display,
+        self._default_spec.update(
+            ccy_display, compact, compact_precision, accounting, group_separator
         )
-        self._rounding = rounding
+        if rounding is not None:
+            self._rounding = rounding
 
     @abstractmethod
     def format(

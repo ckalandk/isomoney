@@ -74,6 +74,7 @@ from ._default import (
     current_backend,
     format,
     get_formatter,
+    local_format,
     register,
     register_backend,
     use_backend,
@@ -81,6 +82,7 @@ from ._default import (
 from .moneyformat import MoneyFormatter
 
 __all__ = [
+    "local_format",
     "basicConfig",
     "MoneyFormatter",
     "format",
