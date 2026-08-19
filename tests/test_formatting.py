@@ -63,6 +63,7 @@ def test_format_context_internals():
     assert not ctx.accounting
     assert ctx.display == "iso"
     assert ctx.rounding == RoundingMode.HALF_EVEN
+    assert ctx.compact_prec == 1
     assert ctx.group_separator
 
 
@@ -272,7 +273,14 @@ def test_formatting_locale_format():
     with formatting.local_format() as fmt:
         fmt.compact = True
         fmt.accounting = True
-        fmt.compact_prec = 3
-        assert f"{money}" == "(USD\xa026.123K)"
+        fmt.compact_prec = 2
+        fmt.display = "hidden"
+        fmt.rounding = RoundingMode.UP
+        assert f"{money}" == "(26.13K)"
+
+    with formatting.local_format() as fmt:
+        fmt.group_separator = False
+        assert f"{money}" == "-USD\xa026123.00"
+
     # default should be restored
     assert f"{money}" == "-USD\xa026,123.00"
