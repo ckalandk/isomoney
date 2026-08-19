@@ -20,9 +20,11 @@ the most idiomatic way to display money is using standard f-strings.
 
     >>> from isomoney import Money
 
-    >>> mny = Money.from_major("2.99", "USD")
+    >>> mny = Money.from_major("-2.99", "USD")
     >>> f"{mny}"
-    'USD\xa02.99'
+    '-USD\xa02.99'
+    >>> f"{mny:ha}"
+    '(2.99)'
 
 Under the Hood: The Direct API
 ------------------------------
@@ -45,12 +47,12 @@ The formatting is orchestrated by ``MoneyFormatter`` class, which is responsible
 parsing the format specification string and hand over the datas to the backend formatter,
 which will display the final result.
 
-``ISOMoney`` ships with three fully implemented backend formatters. ```StdFormatter`` which
+``ISOMoney`` ships with three fully implemented backend formatters. ``StdFormatter`` which
 is a locale-agnostic formatter (the default), ``BabelFormatter`` which as its name suggest
 use ``babel`` library as backend to format money, and ``IcuFormatter`` which uses the ``PyIcu``
 library.
 
-Choosing a backend formatter is a matter of calling a simple function ``use_backend``:abbr:
+Choosing a backend formatter is a matter of calling a simple function ``use_backend``:
 
 .. code-block:: python
 
@@ -65,18 +67,45 @@ Choosing a backend formatter is a matter of calling a simple function ``use_back
     ``babel`` and ``pyicu`` are provided as optional dependencies, installing ``ISOMoney``
     will not install those libraries, you must install them separately.
 
-You can inspect the currently active backend formatter by calling ``formatting.get_formatter()``.
+You can inspect the currently available backend formatters by calling
+``formatting.available_backends()``.
 
 .. code-block:: python
 
     >>> from isomoney import formatting
-    >>> formatter = formatting.get_formatter()
-    >>> formatter.backend_name
-    'Babel'  # or 'PyICU' depending on your environment
+    >>> backends = formatting.available_backends()
+    ['babel', 'icu', 'std']
 
-Retrieving the active formatter is essential when your application needs to globally switch locales,
-swap backends to support advanced numbering systems (like Eastern Arabic numerals),
-or dynamically inject custom formatting specifications.
+When you enable the ``babel`` or ``icu``, the backend
+automatically detects your system's default locale to format the output appropriately.
+
+If you need to explicitly set a global default locale for your application, use ``basicConfig``:
+
+.. code-block:: python
+
+    from isomoney import formatting
+
+    # Set the global backend and locale
+    formatting.use_backend('babel')
+    formatting.basicConfig(locale='fr_FR')
+
+You can also customize the numbering system used for currency formatting
+by passing the ``numbering_system`` argument to ``basicConfig``.
+
+.. code-block:: python
+
+    from isomoney import formatting
+
+    # Configure locale and a specific numbering system
+    formatting.use_backend('babel')
+    formatting.basicConfig(locale='ar_EG', numbering_system='arab')
+
+.. note::
+    **Babel Limitation:** When using the ``babel`` backend, changing the
+    ``numbering_system`` will only affect the decimal and grouping symbols
+    (such as commas and periods). It does not translate the actual numeric digits.
+    If your application requires full digit localization, we recommend using the ``icu``
+    backend instead.
 
 Global Configuration
 --------------------
@@ -85,9 +114,9 @@ Every backend formatter in ``ISOMoney`` possesses a ``default_spec``.
 This specification is used whenever a ``Money`` object is formatted without explicit
 formatting fields (e.g., ``format(mny, "")`` or ``f"{mny}"``).
 
-You can globally override this default behavior—such as enforcing compact notation
-or accounting formats across your entire application—using by calling ``configure()``
-on the active backend.
+You can globally override this default behavior whenever you want to enforce
+a specific formatting mode (like compact notation or accounting) across your entire
+application by calling ``configure()`` on the active backend.
 
 .. code-block:: python
 
@@ -95,6 +124,9 @@ on the active backend.
 
     # Configure the global default: use compact notation with 2 decimal places
     formatting.get_formatter().configure(compact=True, compact_precision=2)
+
+    # You may also choose a rounding mode that will be applied in compact notation
+    formatting.get_formatter().configure(rounding=RoundingMode.HALF_UP)
 
     # Now, all empty format specs will use this configuration globally
     mny = Money.from_major("1500000", "USD")
@@ -104,39 +136,33 @@ on the active backend.
     **Thread Safety and Global State**
 
     ``basicConfig()`` and ``configure()`` mutate the global formatting state.
-    They are designed to be called **exactly once** during application startup
-    (e.g., in ``main.py``, Django's ``settings.py``, or a FastAPI startup event).
+    They are designed to be called **exactly once** during application startup.
 
     **Never call these methods dynamically at runtime**
-    (such as inside a web request handler or a background Celery task).
     Modifying the global configuration inside an active thread will cause race conditions,
     immediately overriding the formatting rules for all other concurrent users.
 
 Handling Dynamic Runtime Formatting
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-If you need to change formatting dynamically based on user preferences or runtime context,
+If you need to change formatting dynamically based on a runtime context,
 do not mutate the global default. Instead, use the inline format specification grammar
-in your f-strings.
+in your f-strings or use the ``local_format`` context manager.
 
-**DON'T do this (Race Condition):**
-
-.. code-block:: python
-
-    def user_dashboard(request):
-        # DANGER: Mutates the global formatter for ALL concurrent users!
-        if request.user.prefers_accounting_format:
-            formatting.get_formatter().configure(accounting=True)
-
-        return f"Balance: {user.balance}"
-
-**DO this (Thread-Safe):**
+The ``local_format`` context manager allows you to temporarily override formatting settings,
+such locale, numbering_system, precision, or compact notation for a specific block of code.
+Once the block exits, the original global settings are seamlessly restored.
 
 .. code-block:: python
 
-    def user_dashboard(request):
-        # SAFE: The formatting grammar is evaluated locally on the call stack
-        if request.user.prefers_accounting_format:
-            return f"Balance: {user.balance:a}"  # 'a' flag overrides default_spec
+    from isomoney import Money
+    from isomoney.formatting import local_format
 
-        return f"Balance: {user.balance}"
+    price = Money("1250.555", "USD")
+
+    with local_format(locale="de_DE") as fmt:
+        fmt.rounding = RoundingMode.HALF_UP
+        fmt.compact = True
+        fmt.compact_precision = 2
+        print(price)
+        print(f"Total: {price}")

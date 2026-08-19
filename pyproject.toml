@@ -11,6 +11,38 @@ authors = [
 requires-python = ">=3.12"
 dependencies = []
 
+keywords = [
+    "money",
+    "currency",
+    "finance",
+    "iso4217",
+    "fintech",
+    "i18n",
+    "localization",
+]
+
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Financial and Insurance Industry",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Office/Business :: Financial",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed",
+]
+
+[project.urls]
+Homepage = "https://github.com/ckalandk/isomoney"
+Documentation = "https://isomoney.readthedocs.io/"
+Repository = "https://github.com/ckalandk/isomoney.git"
+"Bug Tracker" = "https://github.com/ckalandk/isomoney/issues"
+"Changelog" = "https://github.com/ckalandk/isomoney/releases"
+
 [project.optional-dependencies]
 babel = [
     "babel>=2.18.0",
