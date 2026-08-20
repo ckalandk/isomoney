@@ -1,17 +1,17 @@
 # exceptions.py
 
 
-class IsoMoneyError(Exception):
-    """Base exception for all isomoney errors."""
+class PyCentsError(Exception):
+    """Base exception for all pycents errors."""
 
 
-class InvalidFormatSpecError(IsoMoneyError):
+class InvalidFormatSpecError(PyCentsError):
     """Raised when a money format specification is invalid."""
 
 
-class CurrencyMismatchError(IsoMoneyError):
+class CurrencyMismatchError(PyCentsError):
     """Raised when operations involve different currencies."""
 
 
-class BackendConfigurationError(IsoMoneyError):
+class BackendConfigurationError(PyCentsError):
     """Raised when a configuration is not supported by a backend formatter."""

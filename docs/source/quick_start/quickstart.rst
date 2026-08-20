@@ -2,7 +2,7 @@
 Quick Start
 ===========
 
-This guide introduces the most common operations you'll perform with ISOMoney.
+This guide introduces the most common operations you'll perform with PyCents.
 
 Creating money
 ==============
@@ -11,7 +11,7 @@ Create money from minor units (The currency smallest unit e.g cents):
 
 .. code-block:: python
 
-    from isomoney import Money, Currency
+    from pycents import Money, Currency
 
     wallet = Money(1250, Currency.from_code("USD"))
 
@@ -38,8 +38,8 @@ The following example uses "USD" which supports up to 2 decimals.
 
 .. code-block:: python
 
-    >>> from isomoney import Money
-    >>> from isomoney.rounding import RoundingMode
+    >>> from pycents import Money
+    >>> from pycents.rounding import RoundingMode
 
     >>> final_price = Money.from_major(19.175, "USD")
     >>> print(final_price)
@@ -65,7 +65,7 @@ use ``UnroundedMoney``.
 
 .. code-block:: python
 
-    from isomoney import Money, UnroundedMoney
+    from pycents import Money, UnroundedMoney
     price_per_million_api_call = Money.from_major(1.67, "USD") # 167 cents
     price_per_api_call = price_per_million_api_call / 1_000_000
     assert isintance(price_per_api_call, UnroundedMoney)
@@ -94,7 +94,7 @@ Think of it this way:
 .. code-block:: python
 
     from decimal import Decimal
-    from isomoney import Money, UnroundedMoney, RoundingMode
+    from pycents import Money, UnroundedMoney, RoundingMode
 
     gas_price_per_gallon = UnroundedMoney.from_decimal(Decimal("4.0656"), "USD")
     volume = Decimal("12.345") # gallons
@@ -160,7 +160,7 @@ of the operation will be an instance of ``UnroundedMoney``.
 
 .. code-block:: python
 
-    >>> from isomoney import Money, UnroundedMoney
+    >>> from pycents import Money, UnroundedMoney
 
     >>> price = Money.from_major("19.99", "USD")
     >>> vat = (price * Decimal("0.20"))
@@ -196,14 +196,14 @@ among the departments according to the area each department occupies.
 Department A occupies 1,000 square feet, Department B occupies 2,000 square feet,
 and Department C occupies 3,000 square feet.
 
-This is an example of proportional allocation. **ISOmoney** provide utility
-functions through the module ``isomoney.allocation`` to perform proportional
+This is an example of proportional allocation. **PyCents** provide utility
+functions through the module ``pycents.allocation`` to perform proportional
 allocation without ever loosing a penny in the process.
 
 .. code-block:: python
 
-    >>> from isomoney import allocation as alloc
-    >>> from isomoney import Money
+    >>> from pycents import allocation as alloc
+    >>> from pycents import Money
 
     >>> rent = Money.from_major(100_000, "USD")
     >>> ratios = [1000, 2000, 3000]
@@ -224,8 +224,8 @@ allocation without ever loosing a penny in the process.
 Formatting
 ==========
 
-ISOMoney provide rich options for formatting ``Money`` and ``UnroundedMoney`` objects.
-Isomoney ships with a standard locale-agnostic formatter which is available
+PyCents provide rich options for formatting ``Money`` and ``UnroundedMoney`` objects.
+it ships with a standard locale-agnostic formatter which is available
 right out of the box.
 
 Locale-aware formatting is also available through optional formatting backends.
@@ -278,7 +278,7 @@ Display options:
 Localized Money Formatting
 -------------------------------
 
-Localized formatting is provided through optional backends. ``ISOMoney`` supports
+Localized formatting is provided through optional backends. ``PyCents`` supports
 both `Babel <https://babel.pocoo.org/>`_ and `pyicu <https://pypi.org/project/pyicu/>`_.
 
 .. warning::
@@ -294,7 +294,7 @@ function from the ``formatting`` module.
 
 .. code-block:: python
 
-    from isomoney import Money, formatting
+    from pycents import Money, formatting
     formatting.use_backend("babel") # other options are: 'icu' or 'std' (the default)
 
     money = Money.from_major(2600, "USD")
@@ -305,7 +305,7 @@ the locale to use, see the following example on how to explictly choose a locale
 
 .. code-block:: python
 
-    from isomoney import Money, formatting
+    from pycents import Money, formatting
 
     formatting.use_backend("babel") # other options are: 'icu' or 'std' (the default)
     formatting.basicConfig(locale="fr_FR")

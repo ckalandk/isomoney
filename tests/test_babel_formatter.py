@@ -2,10 +2,10 @@ from decimal import Decimal
 
 import pytest
 
-from isomoney.exceptions import BackendConfigurationError, InvalidFormatSpecError
-from isomoney.formatting.babel import BabelFormatter
-from isomoney.formatting.formatspec import FormatSpec
-from isomoney.rounding import RoundingMode
+from pycents.exceptions import BackendConfigurationError, InvalidFormatSpecError
+from pycents.formatting.babel import BabelFormatter
+from pycents.formatting.formatspec import FormatSpec
+from pycents.rounding import RoundingMode
 
 
 class TestBabelFormatter:

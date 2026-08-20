@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 from dataclasses import replace
 
-from isomoney.exceptions import InvalidFormatSpecError
+from pycents.exceptions import InvalidFormatSpecError
 
 from .base_formatter import BaseFormatter
 from .formatspec import DisplayOpts, FormatSpec

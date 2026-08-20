@@ -18,7 +18,7 @@ Multiplication and division by non-integer factors are different.
 For example, dividing one cent by two yields half a cent, which cannot be
 represented as a ``Money`` instance.
 
-Rather than silently rounding the result, ISOMoney returns an intermediate
+Rather than silently rounding the result, PyCents returns an intermediate
 ``Unrounded`` object.
 
 .. code-block:: python
@@ -28,7 +28,7 @@ Rather than silently rounding the result, ISOMoney returns an intermediate
     >>> type(vat)
     Unrounded(...)
 
-IsoMoney follows one simple principle:
+PyCents follows one simple principle:
 
     **Rounding should always be explicit, and should never be performed internally**
 
@@ -112,7 +112,7 @@ Take this pricing calculation for example:
 .. code-block:: python
 
     from decimal import Decimal
-    from isomoney import Money
+    from pycents import Money
 
     # JPY has 0 minor units, meaning final amounts must be integers.
 

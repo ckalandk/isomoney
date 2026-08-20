@@ -2,7 +2,7 @@
 Installation
 ============
 
-IsoMoney supports Python **3.12** and later.
+PyCents supports Python **3.12** and later.
 
 
 Install from PyPI
@@ -10,13 +10,13 @@ Install from PyPI
 
 .. code-block:: bash
 
-    pip install isomoney
+    pip install pycents
 
 
 Optional formatting backends
 ----------------------------
 
-IsoMoney provides a locale agnostic lightweight core implementation for formatting money.
+PyCents provides a locale agnostic lightweight core implementation for formatting money.
 Locale-aware currency formatting is available through optional formatting backends.
 
 Babel

@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from decimal import Decimal
 
-from isomoney.rounding import RoundingMode
+from pycents.rounding import RoundingMode
 
 from .formatspec import DisplayOpts, FormatSpec
 

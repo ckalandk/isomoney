@@ -2,10 +2,10 @@
 Formatting
 ==========
 
-In this section we'll dive deep into how ``ISOMoney`` formatting works.
+In this section we'll dive deep into how ``PyCents`` formatting works.
 
 All formatting is routed through the ``formatting`` module. By default,
-``ISOMoney`` uses a locale-agnostic global formatter that produces consistent,
+``PyCents`` uses a locale-agnostic global formatter that produces consistent,
 predictable output regardless of the host machine's environment.
 
 You can format a ``Money`` object in two ways: indirectly via Python's built-in
@@ -13,12 +13,12 @@ string interpolation, or directly through the formatting API.
 
 The Quick Way: String Interpolation
 -----------------------------------
-Because ``ISOMoney`` tightly integrates with Python's formatting protocol,
+Because ``PyCents`` tightly integrates with Python's formatting protocol,
 the most idiomatic way to display money is using standard f-strings.
 
 .. code-block:: python
 
-    >>> from isomoney import Money
+    >>> from pycents import Money
 
     >>> mny = Money.from_major("-2.99", "USD")
     >>> f"{mny}"
@@ -37,7 +37,7 @@ For advanced use cases, you can call this function directly.
 
 .. code-block:: python
 
-    >>> from isomoney import Money, formatting
+    >>> from pycents import Money, formatting
 
     >>> mny = Money.from_major("2.99", "USD")
     >>> result = formatting.format(mny, "")
@@ -51,7 +51,7 @@ The formatting is orchestrated by the ``MoneyFormatter`` class, which is respons
 parsing the format specification string and handing over the data to the backend formatter,
 which will display the final result.
 
-``ISOMoney`` ships with three fully implemented backend formatters. ``StdFormatter`` which
+``PyCents`` ships with three fully implemented backend formatters. ``StdFormatter`` which
 is a locale-agnostic formatter (the default), ``BabelFormatter`` which, as its name suggests
 use ``babel`` library as backend to format money, and ``IcuFormatter`` which uses the ``PyIcu``
 library.
@@ -60,7 +60,7 @@ Choosing a backend formatter is a matter of calling a simple function ``use_back
 
 .. code-block:: python
 
-    from isomoney import Money, formatting
+    from pycents import Money, formatting
     formatting.use_backend('babel') # Other options are 'std' (the default) and 'icu'.
 
     mny = Money.from_major("-2.99", "USD")
@@ -68,7 +68,7 @@ Choosing a backend formatter is a matter of calling a simple function ``use_back
 
 .. note::
 
-    ``babel`` and ``pyicu`` are provided as optional dependencies, installing ``ISOMoney``
+    ``babel`` and ``pyicu`` are provided as optional dependencies, installing ``PyCents``
     will not install those libraries, you must install them separately.
 
 You can inspect the currently available backend formatters by calling
@@ -76,7 +76,7 @@ You can inspect the currently available backend formatters by calling
 
 .. code-block:: python
 
-    >>> from isomoney import formatting
+    >>> from pycents import formatting
     >>> backends = formatting.available_backends()
     ['babel', 'icu', 'std']
 
@@ -87,7 +87,7 @@ If you need to explicitly set a global default locale for your application, use 
 
 .. code-block:: python
 
-    from isomoney import formatting
+    from pycents import formatting
 
     # Set the global backend and locale
     formatting.use_backend('babel')
@@ -98,7 +98,7 @@ by passing the ``numbering_system`` argument to ``basicConfig``.
 
 .. code-block:: python
 
-    from isomoney import formatting
+    from pycents import formatting
 
     # Configure locale and a specific numbering system
     formatting.use_backend('babel')
@@ -114,7 +114,7 @@ by passing the ``numbering_system`` argument to ``basicConfig``.
 Global Configuration
 --------------------
 
-Every backend formatter in ``ISOMoney`` possesses a ``default_spec``.
+Every backend formatter in ``PyCents`` possesses a ``default_spec``.
 This specification is used whenever a ``Money`` object is formatted without explicit
 formatting fields (e.g., ``format(mny, "")`` or ``f"{mny}"``).
 
@@ -124,7 +124,7 @@ application by calling ``configure()`` on the active backend.
 
 .. code-block:: python
 
-    from isomoney import formatting
+    from pycents import formatting
 
     # Configure the global default: use compact notation with 2 decimal places
     formatting.get_formatter().configure(compact=True, compact_precision=2)
@@ -159,8 +159,8 @@ Once the block exits, the original global settings are seamlessly restored.
 
 .. code-block:: python
 
-    from isomoney import Money, RoundingMode
-    from isomoney.formatting import local_format
+    from pycents import Money, RoundingMode
+    from pycents.formatting import local_format
 
     price = Money.from_major(1500000, "USD")
 

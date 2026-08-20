@@ -14,7 +14,7 @@ from contextlib import contextmanager
 from copy import deepcopy
 from typing import Any, TypeVar
 
-from isomoney.rounding import RoundingMode
+from pycents.rounding import RoundingMode
 
 from .base_formatter import BaseFormatter
 from .formatspec import DisplayOpts

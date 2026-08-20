@@ -13,13 +13,13 @@ from pathlib import Path
 root = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(root / "src"))
 
-project = "ISOMoney"
+project = "PyCents"
 copyright = "2026, Khaled Kessoum"
 author = "Khaled Kessoum"
 
 # Copied verbatim from hypothesis conf.py
 _d = {}
-_init_file = root.joinpath("src", "isomoney", "__init__.py")
+_init_file = root.joinpath("src", "pycents", "__init__.py")
 
 init_content = _init_file.read_text(encoding="utf-8")
 
@@ -29,7 +29,7 @@ if version_match:
     version = version_match.group(1)
     release = version
 else:
-    raise RuntimeError("Unable to find __version__ string in isomoney/__init__.py")
+    raise RuntimeError("Unable to find __version__ string in pycents/__init__.py")
 
 extensions = [
     "sphinx.ext.autodoc",

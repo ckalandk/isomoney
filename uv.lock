@@ -348,62 +348,6 @@ wheels = [
 ]
 
 [[package]]
-name = "isomoney"
-version = "0.9.0"
-source = { editable = "." }
-
-[package.optional-dependencies]
-babel = [
-    { name = "babel" },
-]
-i18n = [
-    { name = "babel" },
-    { name = "pyicu" },
-]
-pyicu = [
-    { name = "pyicu", marker = "sys_platform != 'win32'" },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "hypothesis" },
-    { name = "mypy" },
-    { name = "pre-commit" },
-    { name = "pytest" },
-    { name = "pytest-cov" },
-    { name = "ruff" },
-    { name = "sphinx" },
-    { name = "sphinx-design" },
-    { name = "sphinx-hoverxref" },
-    { name = "sphinx-rtd-theme" },
-    { name = "tox" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "babel", marker = "extra == 'babel'", specifier = ">=2.18.0" },
-    { name = "babel", marker = "extra == 'i18n'" },
-    { name = "pyicu", marker = "sys_platform != 'win32' and extra == 'pyicu'", specifier = ">=2.16.2" },
-    { name = "pyicu", marker = "extra == 'i18n'" },
-]
-provides-extras = ["babel", "pyicu", "i18n"]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "hypothesis", specifier = ">=6.161.8" },
-    { name = "mypy", specifier = ">=2.3.0" },
-    { name = "pre-commit", specifier = ">=4.6.1" },
-    { name = "pytest", specifier = ">=9.1.1" },
-    { name = "pytest-cov", specifier = ">=7.1.0" },
-    { name = "ruff", specifier = ">=0.16.0" },
-    { name = "sphinx", specifier = ">=9.1.0" },
-    { name = "sphinx-design", specifier = ">=0.7.0" },
-    { name = "sphinx-hoverxref", specifier = ">=1.4.2" },
-    { name = "sphinx-rtd-theme", specifier = ">=3.1.0" },
-    { name = "tox", specifier = ">=4.58.0" },
-]
-
-[[package]]
 name = "jinja2"
 version = "3.1.6"
 source = { registry = "https://pypi.org/simple" }
@@ -653,6 +597,62 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/25/3a/ddb78f32a0814e66b18a099377a106a2dcdce92d86a034d69d65df9b256e/pre_commit-4.6.1.tar.gz", hash = "sha256:03e809865c7d178b9979d06c761fcbfe6808fdaded8581a745bb110e52050421", size = 198646, upload-time = "2026-07-21T20:56:58.225Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/fb/49/bc925106abcdac498074f2cbe6137e94e09f418dd2b7775df5b577dc0313/pre_commit-4.6.1-py2.py3-none-any.whl", hash = "sha256:0e3b2942510d1fb34eec167a3ec57331bf8442122f1153a9fb8b58f5c49b2717", size = 226186, upload-time = "2026-07-21T20:56:57.064Z" },
+]
+
+[[package]]
+name = "pycents"
+version = "0.9.0"
+source = { editable = "." }
+
+[package.optional-dependencies]
+babel = [
+    { name = "babel" },
+]
+i18n = [
+    { name = "babel" },
+    { name = "pyicu" },
+]
+pyicu = [
+    { name = "pyicu", marker = "sys_platform != 'win32'" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "hypothesis" },
+    { name = "mypy" },
+    { name = "pre-commit" },
+    { name = "pytest" },
+    { name = "pytest-cov" },
+    { name = "ruff" },
+    { name = "sphinx" },
+    { name = "sphinx-design" },
+    { name = "sphinx-hoverxref" },
+    { name = "sphinx-rtd-theme" },
+    { name = "tox" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "babel", marker = "extra == 'babel'", specifier = ">=2.18.0" },
+    { name = "babel", marker = "extra == 'i18n'" },
+    { name = "pyicu", marker = "sys_platform != 'win32' and extra == 'pyicu'", specifier = ">=2.16.2" },
+    { name = "pyicu", marker = "extra == 'i18n'" },
+]
+provides-extras = ["babel", "pyicu", "i18n"]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "hypothesis", specifier = ">=6.161.8" },
+    { name = "mypy", specifier = ">=2.3.0" },
+    { name = "pre-commit", specifier = ">=4.6.1" },
+    { name = "pytest", specifier = ">=9.1.1" },
+    { name = "pytest-cov", specifier = ">=7.1.0" },
+    { name = "ruff", specifier = ">=0.16.0" },
+    { name = "sphinx", specifier = ">=9.1.0" },
+    { name = "sphinx-design", specifier = ">=0.7.0" },
+    { name = "sphinx-hoverxref", specifier = ">=1.4.2" },
+    { name = "sphinx-rtd-theme", specifier = ">=3.1.0" },
+    { name = "tox", specifier = ">=4.58.0" },
 ]
 
 [[package]]

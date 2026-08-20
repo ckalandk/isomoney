@@ -2,13 +2,13 @@
 Rounding Policies
 =================
 
-IsoMoney provides a collection of rounding policies through the
-``RoundingPolicy`` enumeration, defined in the ``isomoney.rounding``
+PyCents provides a collection of rounding policies through the
+``RoundingPolicy`` enumeration, defined in the ``pycents.rounding``
 module.
 
 .. code-block:: python
 
-    from isomoney.rounding import RoundingPolicy
+    from pycents.rounding import RoundingPolicy
 
 The library uses these policies whenever an operation requires converting
 a value that cannot be represented exactly in minor units.
@@ -34,13 +34,13 @@ instance. By default, ``RoundingPolicy.HALF_EVEN`` is used, although any
 supported rounding policy may be specified explicitly.
 
 
-``_Unrounded.quantize()``
-^^^^^^^^^^^^^^^^^^^^^^^^^
+``UnroundedMoney.round()``
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Multiplication and division by non-integer factors produce an
 unrounded result.
 
-Calling ``quantize()`` converts this result back to a ``Money`` instance
+Calling ``round()`` converts this result back to a ``Money`` instance
 using the specified rounding policy.
 
 .. code-block:: python

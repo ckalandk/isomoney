@@ -4,10 +4,10 @@ import pytest
 from hypothesis import given
 from hypothesis import strategies as st
 
-from isomoney import Ccy, Currency, Money
-from isomoney.exceptions import CurrencyMismatchError
-from isomoney.money import UnroundedMoney
-from isomoney.rounding import RoundingMode
+from pycents import Ccy, Currency, Money
+from pycents.exceptions import CurrencyMismatchError
+from pycents.money import UnroundedMoney
+from pycents.rounding import RoundingMode
 
 
 def _usd_money(amount: int, currency: str = "USD") -> Money:

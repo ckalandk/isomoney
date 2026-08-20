@@ -5,7 +5,7 @@ from decimal import Decimal
 from functools import total_ordering
 from typing import Any, Self, final, overload
 
-from isomoney.formatting import format as money_format
+from pycents.formatting import format as money_format
 
 from ._decimal import _decimal_places, _force_decimal, _remove_trailing_zeros
 from .currency import Ccy, Currency

@@ -4,7 +4,7 @@ from .exceptions import (
     BackendConfigurationError,
     CurrencyMismatchError,
     InvalidFormatSpecError,
-    IsoMoneyError,
+    PyCentsError,
 )
 from .money import Money, UnroundedMoney
 from .rounding import RoundingMode
@@ -22,7 +22,7 @@ __all__ = [
     "allocation",
     "formatting",
     # Excpetions
-    "IsoMoneyError",
+    "PyCentsError",
     "InvalidFormatSpecError",
     "CurrencyMismatchError",
     "BackendConfigurationError",

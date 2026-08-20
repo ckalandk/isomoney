@@ -5,13 +5,13 @@ import pytest
 icu = pytest.importorskip("icu")
 
 # ruff: isort: split
-from isomoney.exceptions import (  # noqa: E402
+from pycents.exceptions import (  # noqa: E402
     BackendConfigurationError,
     InvalidFormatSpecError,
 )
-from isomoney.formatting.formatspec import FormatSpec  # noqa: E402
-from isomoney.formatting.pyicu import IcuFormatter  # noqa: E402
-from isomoney.rounding import RoundingMode  # noqa: E402
+from pycents.formatting.formatspec import FormatSpec  # noqa: E402
+from pycents.formatting.pyicu import IcuFormatter  # noqa: E402
+from pycents.rounding import RoundingMode  # noqa: E402
 
 
 def normalize_space(s: str) -> str:

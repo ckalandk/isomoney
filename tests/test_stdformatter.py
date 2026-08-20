@@ -3,10 +3,10 @@ from functools import partial
 
 import pytest
 
-from isomoney.exceptions import InvalidFormatSpecError
-from isomoney.formatting.formatspec import FormatSpec
-from isomoney.formatting.std_formatter import StdFormatter
-from isomoney.rounding import RoundingMode
+from pycents.exceptions import InvalidFormatSpecError
+from pycents.formatting.formatspec import FormatSpec
+from pycents.formatting.std_formatter import StdFormatter
+from pycents.rounding import RoundingMode
 
 
 class TestStdFormatter:

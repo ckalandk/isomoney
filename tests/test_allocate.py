@@ -4,8 +4,8 @@ import pytest
 from hypothesis import given
 from hypothesis import strategies as st
 
-from isomoney.allocation import allocate, allocate_base, hamilton, round_robin
-from isomoney.money import Money
+from pycents.allocation import allocate, allocate_base, hamilton, round_robin
+from pycents.money import Money
 
 amounts_st = st.integers(min_value=0, max_value=1_000_000_000)
 

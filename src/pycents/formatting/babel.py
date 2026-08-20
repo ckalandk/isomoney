@@ -15,9 +15,9 @@ from babel.numbers import (
     parse_pattern,
 )
 
-from isomoney._decimal import _enforce_precision
-from isomoney.exceptions import BackendConfigurationError, InvalidFormatSpecError
-from isomoney.rounding import RoundingMode, as_decimal_rounding
+from pycents._decimal import _enforce_precision
+from pycents.exceptions import BackendConfigurationError, InvalidFormatSpecError
+from pycents.rounding import RoundingMode, as_decimal_rounding
 
 from .base_formatter import BaseFormatter
 from .formatspec import FormatSpec

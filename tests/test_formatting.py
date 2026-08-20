@@ -4,13 +4,13 @@ from copy import copy
 
 import pytest
 
-from isomoney import Money, formatting
-from isomoney.exceptions import InvalidFormatSpecError
-from isomoney.formatting._default import _FormatContext
-from isomoney.formatting.base_formatter import BaseFormatter
-from isomoney.formatting.formatspec import FormatSpec
-from isomoney.formatting.std_formatter import StdFormatter
-from isomoney.rounding import RoundingMode
+from pycents import Money, formatting
+from pycents.exceptions import InvalidFormatSpecError
+from pycents.formatting._default import _FormatContext
+from pycents.formatting.base_formatter import BaseFormatter
+from pycents.formatting.formatspec import FormatSpec
+from pycents.formatting.std_formatter import StdFormatter
+from pycents.rounding import RoundingMode
 
 
 class RecordingFormatter(BaseFormatter):

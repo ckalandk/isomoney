@@ -1,5 +1,5 @@
 [project]
-name = "isomoney"
+name = "pycents"
 version = "0.9.0"
 description = "An ISO compliant money and currency library"
 readme = "README.md"
@@ -37,11 +37,11 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/ckalandk/isomoney"
-Documentation = "https://isomoney.readthedocs.io/"
-Repository = "https://github.com/ckalandk/isomoney.git"
-"Bug Tracker" = "https://github.com/ckalandk/isomoney/issues"
-"Changelog" = "https://github.com/ckalandk/isomoney/releases"
+Homepage = "https://github.com/ckalandk/pycents"
+Documentation = "https://pycents.readthedocs.io/"
+Repository = "https://github.com/ckalandk/pycents.git"
+"Bug Tracker" = "https://github.com/ckalandk/pycents/issues"
+"Changelog" = "https://github.com/ckalandk/pycents/releases"
 
 [project.optional-dependencies]
 babel = [
@@ -73,7 +73,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/isomoney"]
+packages = ["src/pycents"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -81,10 +81,10 @@ addopts = ["--import-mode=importlib"]
 
 # Test Coverage Configuration
 [tool.coverage.run]
-source = ["src/isomoney"]
+source = ["src/pycents"]
 omit = [
-    "src/isomoney/iso4217.py",
-    "src/isomoney/rounding.py"]
+    "src/pycents/iso4217.py",
+    "src/pycents/rounding.py"]
 
 [tool.coverage.report]
 show_missing = true
@@ -129,7 +129,7 @@ indent-style = "space"
 skip-magic-trailing-comma = false
 
 [tool.mypy]
-files = ["src/isomoney"]
+files = ["src/pycents"]
 exclude = [
     "pyicu\\.py$",
     "babel\\.py$"

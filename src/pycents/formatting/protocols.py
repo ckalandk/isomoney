@@ -1,7 +1,7 @@
 from decimal import Decimal
 from typing import Protocol
 
-from isomoney.currency import Currency
+from pycents.currency import Currency
 
 
 class _SupportMoneyOperation(Protocol):

@@ -5,7 +5,7 @@ API Reference
 Core Models
 -----------
 
-.. currentmodule:: isomoney
+.. currentmodule:: pycents
 
 .. autosummary::
    :toctree: api/
@@ -30,6 +30,6 @@ Exceptions
 .. autosummary::
    :toctree: api/
 
-   IsoMoneyError
+   PyCentsError
    InvalidFormatSpecError
    CurrencyMismatchError

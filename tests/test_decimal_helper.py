@@ -2,7 +2,7 @@ from decimal import Decimal
 
 import pytest
 
-from isomoney._decimal import _remove_trailing_zeros
+from pycents._decimal import _remove_trailing_zeros
 
 
 @pytest.mark.parametrize(

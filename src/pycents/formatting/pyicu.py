@@ -3,8 +3,8 @@ from typing import Any
 
 import icu as _icu
 
-from isomoney.exceptions import BackendConfigurationError, InvalidFormatSpecError
-from isomoney.rounding import RoundingMode
+from pycents.exceptions import BackendConfigurationError, InvalidFormatSpecError
+from pycents.rounding import RoundingMode
 
 from .base_formatter import BaseFormatter
 from .formatspec import FormatSpec

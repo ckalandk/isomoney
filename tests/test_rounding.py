@@ -2,7 +2,7 @@ import decimal
 
 import pytest
 
-from isomoney.rounding import RoundingMode, as_decimal_rounding
+from pycents.rounding import RoundingMode, as_decimal_rounding
 
 
 @pytest.mark.parametrize(

@@ -38,7 +38,7 @@ a ``Ccy`` enum, or ``Currency.from_code()`` with a ``Ccy`` enum or code string.
 
 .. code-block:: python
 
-    from isomoney import Money, Currency, Ccy
+    from pycents import Money, Currency, Ccy
     >>> price = Money(1999, Currency(Ccy.USD))
     >>> print(price)
     USD 19.99
@@ -82,12 +82,12 @@ represents the rounding mode to apply when the money amount has more fractional 
 than the currency supports. If omitted, the rounding policy defaults to **round half even**.
 
 The Rounding Policies are provided through the enum ``RoundingPolicy``
-from the ``isomoney.rounding`` package. See :doc:`/guide/rounding`.
+from the ``pycents.rounding`` package. See :doc:`/guide/rounding`.
 
 .. code-block:: python
 
     # USD Supports only two fractional digits
-    >>> from isomoney.rounding import RoundingPolicy
+    >>> from pycents.rounding import RoundingPolicy
 
     >>> price = Money.from_major(150.756, "USD")
     >>> print(price)
@@ -100,7 +100,7 @@ from the ``isomoney.rounding`` package. See :doc:`/guide/rounding`.
 Arithmetic
 ----------
 
-``ISOMoney`` categorizes arithmetic operations into two types:
+``PyCents`` categorizes arithmetic operations into two types:
 
 * **Minor-Unit arithmetic operations**
 * **Sub-Unit arithmetic operations**
@@ -164,7 +164,7 @@ Sub-Unit arithmetics
 
 Operations that introduce fractional minor units and preserve sub-unit precision.
 
-This type of operations do not produce an actual ``Money`` instance. ``ISOMoney``
+This type of operations do not produce an actual ``Money`` instance. ``PyCents``
 uses a special type ``Unrounded`` to hold the result of this type of operations,
 maintaining the full precision of the calculation while ignoring completely
 the currency's standard minor units.
@@ -208,7 +208,7 @@ Attempting to compare different currencies raises ``MismatchCurrencyError``.
 Design guarantees
 -----------------
 
-IsoMoney provides the following guarantees:
+PyCents provides the following guarantees:
 
 * ``Money`` objects are immutable.
 * Addition and subtraction are mathematically correct, (Money, +) is
