@@ -219,6 +219,7 @@ allocation without ever loosing a penny in the process.
     ``The function ``allocate`` use the **Hamilton** apportionment strategy to distribute
     the leftover cents. See :ref:`guide-allocation` for a detailed breakdown.
 
+.. _format-specification:
 
 Formatting
 ==========

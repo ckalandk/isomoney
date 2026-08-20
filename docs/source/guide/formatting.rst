@@ -26,6 +26,10 @@ the most idiomatic way to display money is using standard f-strings.
     >>> f"{mny:ha}"
     '(2.99)'
 
+.. tip::
+    For a complete breakdown of the available format fields,
+    please refer to the :ref:`Format Specification Grammar <format-specification>`..
+
 Under the Hood: The Direct API
 ------------------------------
 When you use an f-string, Python implicitly calls ``formatting.format()`` under the hood.
@@ -43,12 +47,12 @@ For advanced use cases, you can call this function directly.
 The Global Formatter
 --------------------
 By default, the ``format`` function delegates the rendering to a globally configured formatter.
-The formatting is orchestrated by ``MoneyFormatter`` class, which is responsible for
-parsing the format specification string and hand over the datas to the backend formatter,
+The formatting is orchestrated by the ``MoneyFormatter`` class, which is responsible for
+parsing the format specification string and handing over the data to the backend formatter,
 which will display the final result.
 
 ``ISOMoney`` ships with three fully implemented backend formatters. ``StdFormatter`` which
-is a locale-agnostic formatter (the default), ``BabelFormatter`` which as its name suggest
+is a locale-agnostic formatter (the default), ``BabelFormatter`` which, as its name suggests
 use ``babel`` library as backend to format money, and ``IcuFormatter`` which uses the ``PyIcu``
 library.
 
@@ -135,7 +139,7 @@ application by calling ``configure()`` on the active backend.
 .. warning::
     **Thread Safety and Global State**
 
-    ``basicConfig()`` and ``configure()`` mutate the global formatting state.
+    ``use_backend()``, ``basicConfig()`` and ``configure()`` mutate the global formatting state.
     They are designed to be called **exactly once** during application startup.
 
     **Never call these methods dynamically at runtime**
@@ -158,11 +162,14 @@ Once the block exits, the original global settings are seamlessly restored.
     from isomoney import Money, RoundingMode
     from isomoney.formatting import local_format
 
-    price = Money.from_major(1250, "USD")
+    price = Money.from_major(1500000, "USD")
+
+    formatting.use_backend('babel')
 
     with local_format(locale="de_DE") as fmt:
         fmt.rounding = RoundingMode.HALF_UP
         fmt.compact = True
-        fmt.compact_precision = 2
-        print(price)
-        print(f"Total: {price}")
+        fmt.compact_prec = 3
+
+        print(price)             # Outputs: USD 1250.00
+        print(f"Total: {price}") # Output: Total: 1,5 Mio. $
