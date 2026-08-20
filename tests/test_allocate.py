@@ -1,3 +1,5 @@
+from random import randint
+
 import pytest
 from hypothesis import given
 from hypothesis import strategies as st
@@ -7,9 +9,17 @@ from isomoney.money import Money
 
 amounts_st = st.integers(min_value=0, max_value=1_000_000_000)
 
-ratios_st = st.lists(st.integers(min_value=0, max_value=10_000), min_size=1).filter(
-    lambda r: sum(r) > 0
+ratios_st = st.lists(
+    st.integers(min_value=0, max_value=10_000), min_size=1, max_size=100
+).filter(lambda r: sum(r) > 0)
+
+strictly_positive_ratios_st = st.lists(
+    st.integers(min_value=1, max_value=100), min_size=2, max_size=100
 )
+
+strictly_increasing = st.sets(
+    st.integers(min_value=1, max_value=10_000), min_size=2
+).map(sorted)
 
 
 @given(amount=amounts_st, ratios=ratios_st)
@@ -106,3 +116,58 @@ def test_allocation_validations_trigger_correctly():
     negative_money = Money.from_major(-50, "USD")
     with pytest.raises(ValueError, match="Expected positive money"):
         allocate(negative_money, [1, 1])
+
+
+@pytest.mark.parametrize("strategy", [hamilton, round_robin])
+@given(
+    amount=amounts_st,
+    ratios=ratios_st,
+    multiplier=st.integers(min_value=2, max_value=1000),
+)
+def test_allocation_homogeneity(strategy, amount, ratios, multiplier):
+    scaled_ratios = [r * multiplier for r in ratios]
+
+    non_scaled = strategy(amount, ratios)
+    scaled = strategy(amount, scaled_ratios)
+
+    assert non_scaled == scaled
+
+
+@pytest.mark.parametrize(
+    "strategy",
+    [
+        hamilton,
+    ],
+)
+@given(amount=amounts_st, ratios=strictly_increasing)
+def test_hamilton_allocation_concordance(strategy, amount, ratios):
+
+    result = strategy(amount, ratios)
+
+    for i in range(len(result) - 1):
+        assert result[i] <= result[i + 1]
+
+
+@pytest.mark.parametrize("strategy", [hamilton, round_robin])
+@given(
+    amount=amounts_st,
+    ratios=strictly_positive_ratios_st,
+)
+def test_allocation_balancedness(strategy, amount, ratios):
+    length = len(ratios) - 1
+    i = randint(1, length)
+    ratios[i] = ratios[0]
+    result = strategy(amount, ratios)
+    assert abs(result[0] - result[i]) <= 1
+
+
+@pytest.mark.parametrize("strategy", [hamilton, round_robin])
+@given(
+    amount=st.integers(min_value=1, max_value=100),
+    ratios=ratios_st,
+)
+def test_allocation_exactness(strategy, amount, ratios):
+    h = sum(ratios)
+    h_multiple = amount * h
+    result = strategy(h_multiple, ratios)
+    assert result == [amount * r for r in ratios]
