@@ -1,0 +1,3 @@
+sphinx>=8.0
+furo
+sphinx-design
