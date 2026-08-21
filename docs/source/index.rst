@@ -1,8 +1,8 @@
 ===================
-Welcome to ISOMoney
+Welcome to PyCents
 ===================
 
-**ISOMoney** is a strongly typed Python library for representing and manipulating monetary
+**PyCents** is a strongly typed Python library for representing and manipulating monetary
 values with ISO 4217-compliant currencies and explicit rounding semantics.
 
 .. grid:: 1 1 2 3

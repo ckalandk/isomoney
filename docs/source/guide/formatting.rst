@@ -27,7 +27,7 @@ the most idiomatic way to display money is using standard f-strings.
     '(2.99)'
 
 .. tip::
-    For a complete breakdown of the available format fields,
+    For a complete breakdown of the Format Specificatin grammar,
     please refer to the :ref:`Format Specification Grammar <format-specification>`..
 
 Under the Hood: The Direct API
@@ -39,10 +39,10 @@ For advanced use cases, you can call this function directly.
 
     >>> from pycents import Money, formatting
 
-    >>> mny = Money.from_major("2.99", "USD")
-    >>> result = formatting.format(mny, "")
+    >>> mny = Money.from_major("-2.99", "USD")
+    >>> result = formatting.format(mny, "a")
     >>> result
-    'USD\xa02.99'
+    '(USD\xa02.99)'
 
 The Global Formatter
 --------------------

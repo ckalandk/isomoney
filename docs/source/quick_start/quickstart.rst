@@ -87,7 +87,7 @@ Think of it this way:
 
     You rarely need to instantiate ``UnroundedMoney`` directly. As shown above,
     standard ``Money`` objects automatically convert to ``UnroundedMoney`` when
-    multiplying/divided by Decimals. But if you ever feel the need to construct
+    multiplyed/divided by Decimals. But if you ever feel the need to construct
     an ``UnroundedMoney`` instance directly, use ``from_decimal`` method.
     See the example below:
 
@@ -283,8 +283,8 @@ both `Babel <https://babel.pocoo.org/>`_ and `pyicu <https://pypi.org/project/py
 
 .. warning::
 
-    Before using any of the following examples, ensure that both ``babel`` and ``pyicu``
-    are properly installed.
+    Before using any of the following examples, ensure that ``babel`` or ``pyicu``
+    is properly installed.
 
 Choosing a formatter
 ^^^^^^^^^^^^^^^^^^^^
@@ -307,7 +307,7 @@ the locale to use, see the following example on how to explictly choose a locale
 
     from pycents import Money, formatting
 
-    formatting.use_backend("babel") # other options are: 'icu' or 'std' (the default)
+    formatting.use_backend("babel")
     formatting.basicConfig(locale="fr_FR")
 
     money = Money.from_major(2600, "USD")
