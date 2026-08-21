@@ -34,18 +34,15 @@ Rounding occurs only when explicitly requested by the application.
 
 ## Status
 
-### Pre-1.0, but API-stable
+### 1.0.0 (Production Ready)
 
-The library is functionally complete and the public API is currently considered stable.
-The test suite is comprehensive, and breaking changes are not expected.
+`pycents` is stable and ready for production use. The public API is frozen and fully covered by tests, adhering strictly to Semantic Versioning (SemVer).
 
-The project remains below 1.0.0 intentionally, to allow the API and design to receive feedback from users before the first stable release. Breaking changes may still be introduced before 1.0.0 if feedback reveals opportunities to improve the public API or overall design.
+## Documentation
 
-Documentation is still being completed.
-
-Feedback on the API, design, and overall usability is especially welcome at this stage.
+Full documentation and API reference are available at [pycents.readthedocs.io](https://pycents.readthedocs.io/).
 
 ## License
 
-pycents is distributed under the MIT License.
+`pycents` is distributed under the MIT License.
 See the [LICENSE](./LICENSE) file for details.
