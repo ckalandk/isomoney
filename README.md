@@ -18,12 +18,14 @@ values with ISO 4217-compliant currencies and explicit rounding semantics and ri
 
 * **ISO 4217 compliance** — currencies are represented with their standardized codes and minor-unit definitions, while Money uses integer minor units for exact monetary representation.
 
-* **Explicit rounding** — monetary rounding is never performed implicitly during arithmetic.
-Rounding occurs only when explicitly requested by the application.
-(Note: Intermediate arithmetic remains bound by the standard limits of Python's underlying decimal context. See the [Guide] for technical details)."
+* **Explicit rounding** — PyCents use a dual-type architecture for exact and high-precision operations:
+  * `Money` The core immutable type that stores exact monetary values as integer minor units (e.g., cents).
+  * `UnroundedMoney`: A high-precision type designed for complex intermediate calculations without premature rounding.
+  * **Seamless Integration**: Both types work together fluidly in arithmetic. Calling `.round()` on an `UnroundedMoney` instance explicitly converts it back into standard Money.
 
 ## Features
 
+* 100% Test Coverage & Property-Based Testing: Fully covered and rigorously verified using   Hypothesis to guarantee mathematical invariants.
 * ISO 4217 currency definitions
 * Immutable `Money` type
 * Precise decimal arithmetic
@@ -32,15 +34,53 @@ Rounding occurs only when explicitly requested by the application.
 * Pluggable formatting backends
 * Custom format specification
 
+## Example
+
+```python
+from decimal import Decimal
+
+from pycents import(
+  Money,
+  UnroundedMoney,
+  formatting,
+  allocation as alloc
+)
+
+# Use a locale-aware formatting backend
+formatting.use_backend("babel") # Other options are: 'std'(default) and 'icu'
+
+rent = Money.from_major(121_555, "USD")
+# the '.2c' format field is for displaying in compact notation
+# while retaining 2 decimals
+print(f'{rent:.2c}') # Output: $121.56K
+
+# Apply an 8.875% municipal property tax
+tax_rate = Decimal("0.08875")
+
+# `tax` is not a Money instance!
+tax = rent * tax_rate
+assert isinstance(tax, UnroundedMoney)
+
+# At the end the arithmetic pipeling, call round to get a `Money` instance
+total = (rent + tax).round()
+
+# allocate the rent among three clients according to a given ratios
+shares = alloc.allocate(total, [1000, 2000, 3000])
+result = ", ".join(f'{share:.2c}' for share in shares)
+print('Allocated Shares:', f"[{result}]")
+# Output: Allocated Shares: [$22.06K, $44.11K, $66.17K]
+```
+
 ## Status
 
 ### 1.0.0 (Production Ready)
 
-`pycents` is stable and ready for production use. The public API is frozen and fully covered by tests, adhering strictly to Semantic Versioning (SemVer).
+`pycents` is stable and ready for production use. The public API is frozen and fully covered by tests.
 
 ## Documentation
 
-Full documentation and API reference are available at [pycents.readthedocs.io](https://pycents.readthedocs.io/).
+Documentation and API reference are available at [pycents.readthedocs.io](https://pycents.readthedocs.io/). This is still a work in progress, some guide are complete
+(Quickstart, formatting and allocation) but still need to be polished.
 
 ## License
 
