@@ -1,3 +1,11 @@
 # Changelog
 
-## [0.9.0] - Unreleased
+## Version 1.1.0
+
+### Features
+
+* Added cash method to the Money class to support physical cash transactions.
+
+## Version 1.0.0
+
+Initial stable production release. pycents public API is frozen and fully covered by tests.

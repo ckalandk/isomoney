@@ -71,12 +71,6 @@ print('Allocated Shares:', f"[{result}]")
 # Output: Allocated Shares: [$22.06K, $44.11K, $66.17K]
 ```
 
-## Status
-
-### 1.0.0 (Production Ready)
-
-`pycents` is stable and ready for production use. The public API is frozen and fully covered by tests.
-
 ## Documentation
 
 Documentation and API reference are available at [pycents.readthedocs.io](https://pycents.readthedocs.io/). This is still a work in progress, some guide are complete
