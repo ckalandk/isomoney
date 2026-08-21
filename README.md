@@ -39,20 +39,15 @@ values with ISO 4217-compliant currencies and explicit rounding semantics and ri
 ```python
 from decimal import Decimal
 
-from pycents import(
-  Money,
-  UnroundedMoney,
-  formatting,
-  allocation as alloc
-)
+from pycents import Money, UnroundedMoney, formatting, allocation as alloc
 
 # Use a locale-aware formatting backend
-formatting.use_backend("babel") # Other options are: 'std'(default) and 'icu'
+formatting.use_backend("babel")  # Other options are: 'std'(default) and 'icu'
 
 rent = Money.from_major(121_555, "USD")
 # the '.2c' format field is for displaying in compact notation
 # while retaining 2 decimals
-print(f'{rent:.2c}') # Output: $121.56K
+print(f"{rent:.2c}")  # Output: $121.56K
 
 # Apply an 8.875% municipal property tax
 tax_rate = Decimal("0.08875")
@@ -66,8 +61,8 @@ total = (rent + tax).round()
 
 # allocate the rent among three clients according to a given ratios
 shares = alloc.allocate(total, [1000, 2000, 3000])
-result = ", ".join(f'{share:.2c}' for share in shares)
-print('Allocated Shares:', f"[{result}]")
+result = ", ".join(f"{share:.2c}" for share in shares)
+print("Allocated Shares:", f"[{result}]")
 # Output: Allocated Shares: [$22.06K, $44.11K, $66.17K]
 ```
 
