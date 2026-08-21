@@ -1,6 +1,6 @@
 [project]
 name = "pycents"
-version = "0.9.0"
+version = "1.0.0"
 description = "An ISO compliant money and currency library"
 readme = "README.md"
 license = "MIT"
@@ -55,6 +55,7 @@ i18n = ["babel", "pyicu"]
 
 [dependency-groups]
 dev = [
+    "furo>=2025.12.19",
     "hypothesis>=6.161.8",
     "mypy>=2.3.0",
     "pre-commit>=4.6.1",

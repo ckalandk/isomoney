@@ -9,7 +9,7 @@ from .exceptions import (
 from .money import Money, UnroundedMoney
 from .rounding import RoundingMode
 
-__version__ = "0.9.0"
+__version__ = "1.0.0"
 
 __all__ = [
     # Core domain modeles

@@ -1,0 +1,32 @@
+name: Manual Publish to PyPI
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.11.32"
+
+      - name: "Set up Python"
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: "pyproject.toml"
+
+      - name: Install the project
+        run: uv sync --locked
+
+      - name: Build the package
+        run: |
+          uv build
+
+      - name: Publish to PyPI
+        env:
+          UV_TOKEN: ${{ secrets.PYPI_PUBLISH }}
+        run: |
+          uv publish --token "$UV_TOKEN"

@@ -2,6 +2,13 @@
 Rounding Policies
 =================
 
+.. warning::
+   **Under Construction**
+
+   This section is currently under heavy development.
+   For now, please refer to the Quickstart guide or check the source code directly!
+
+
 PyCents provides a collection of rounding policies through the
 ``RoundingPolicy`` enumeration, defined in the ``pycents.rounding``
 module.

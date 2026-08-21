@@ -262,7 +262,7 @@ The format specification are parsed according to this grammar:
     ungroup      ::= u
 
 Display options:
-^^^^^^^^^^^^^^^^
+----------------
 
 * **h**: Hide the currency symbol.
 * **i**: Display the ISO 4217 currency code.

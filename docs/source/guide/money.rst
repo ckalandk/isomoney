@@ -2,6 +2,12 @@
 Money
 =====
 
+.. warning::
+   **Under Construction**
+
+   This section is currently under heavy development.
+   For now, please refer to the Quickstart guide or check the source code directly!
+
 The ``Money`` class represents a monetary amount expressed in a specific ISO 4217 currency.
 
 A ``Money`` instance combines two pieces of information:

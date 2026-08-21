@@ -2,6 +2,8 @@ from collections.abc import Callable, Sequence
 
 from .money import Money
 
+__all__ = ["allocate", "allocate_base", "hamilton", "round_robin"]
+
 type Apportionment = Callable[[int, Sequence[int]], list[int]]
 
 
