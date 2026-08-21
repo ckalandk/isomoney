@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from decimal import Decimal
 from functools import total_ordering
 from typing import Any, Self, final, overload
@@ -426,6 +426,40 @@ class Money(_SupportMoneyOperation):
         """Reconstruct a Money instance from a dictionary payload."""
         return cls(data["minor_units"], Currency.from_code(data["currency"]))
 
+    def cash(self, rounding: Callable[[int], int]) -> Money:
+        """Applies a custom cash-rounding strategy to the minor units amount.
+
+        This is useful for physical cash transaction where the total must be
+        rounded to the nearest physical coin denomination.
+
+        For example, following the phase-out of the penny in Canada in 2013
+        (and the United States in february 2025), cash transactions are required to be
+        rounded to the nearest 5 cents (nickel), while electronic transactions
+        continue to be processed to the exact cent.
+
+        Note:
+            Thanks to the random guy from discord that brought this case to my
+            attention
+
+        Args:
+            rounding: A function that takes the current minor unit as an integer
+            and returns the newly rounded minor unit amount
+
+        Returns:
+            A Money instance containing the rounded amount with the same currency
+
+        Examples:
+            >>> # Canadian cash rounding (nearest 5 cents)
+            >>> def cad_round_cash(amount: int) -> int:
+            ...     return int(round(amount / 5.0) * 5)
+            ...
+            >>> total = Money.from_major("12.03", "USD")
+            >>> cash = total.cash(cand_round_cash)
+            >>> print(cash)
+        """
+        amount = rounding(self._amount)
+        return Money(amount, self._currency)
+
     def __hash__(self) -> int:
         return hash((self._amount, self._currency))
 
@@ -448,9 +482,10 @@ class Money(_SupportMoneyOperation):
 
         money-format ::= money-spec string-format
 
-        money-spec ::= [display] [compact] [accounting] [ungroup]
+        money-spec ::= [display] [compact-precision] [compact] [accounting] [ungroup]
 
         display ::= h | i | n
+        compact-precision ::= .integer
         compact ::= c
         accounting ::= a
         ungroup ::= u
@@ -459,6 +494,8 @@ class Money(_SupportMoneyOperation):
             h: Hide the currency symbol.
             i: Display the ISO 4217 currency code.
             n: Display the currency name.
+            .integer: Specify the number of fractional digits to display
+                      when using compact notation
             c: Use compact notation (for example, ``1.2M``).
             a: Display negative amounts using accounting notation
                (for example, ``(123.45)`` instead of ``-123.45``).
@@ -472,7 +509,7 @@ class Money(_SupportMoneyOperation):
         Examples:
             >>> f"{money:}"
             >>> f"{money:h}"
-            >>> f"{money:hc}"
+            >>> f"{money:h.2c}"
             >>> f"{money:ia}"
             >>> f"{money:hc>20}"
         """

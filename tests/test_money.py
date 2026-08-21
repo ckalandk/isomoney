@@ -378,6 +378,27 @@ def test_money_to_decimal(money_, expected):
     assert money_.to_decimal() == expected
 
 
+@pytest.mark.parametrize(
+    "amount, expected",
+    [
+        (100, 100),
+        (101, 100),
+        (102, 100),
+        (103, 105),
+        (104, 105),
+        (105, 105),
+        (106, 105),
+        (107, 105),
+        (108, 110),
+        (109, 110),
+    ],
+)
+def test_money_cash(amount, expected):
+    mny = Money(amount, Currency.from_code("USD"))
+    result = mny.cash(lambda x: int(round(x / 5.0) * 5))
+    assert result._amount == expected
+
+
 @pytest.mark.parametrize("amount, currency", [(299, "USD"), (199, "KWD"), (220, "EUR")])
 def test_money_repr(amount, currency):
     mny = Money(amount, Currency.from_code(currency))
