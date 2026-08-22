@@ -172,17 +172,18 @@ of the arithmetic pipeline to convert the ``UnroundedMoney`` object to a
 ``Money`` instance.
 
 ``round`` uses the half-even rounding policy by default,
-you may use another rounding policy available through the enum ``RoundingPolicy``:
+you may use another rounding policy available through the enum ``RoundingMode``:
 
 .. code-block:: python
 
+    >>> from pycents import Money, RoundingMode
     >>> cost_per_month = Money.from_major("26.99", "USD")
 
     >>> days_used = Decimal('17')
     >>> prorated_cost = (cost_per_month * days_used) / Decimal('30')
     >>> print(prorated_cost)
     USD 15.29433333333333333333333333
-    >>> print(prorated_cost.round())
+    >>> print(prorated_cost.round(RoundingMode.DOWN))
     USD 15.29
 
 Allocation
@@ -235,17 +236,17 @@ Locale-aware formatting is also available through optional formatting backends.
     >>> price = Money.from_major(2.99, "USD")
     >>> print(f"{price}")
     USD 2.99
-    >>> print(f"{price:h}") # Hide the currency
+    >>> print(f"{price:h}")  # Hide the currency
     2.99
     >>> price = Money.from_major(29990005, "USD")
-    >>> print(f"{price:c}") # Print in compact format
+    >>> print(f"{price:c}")  # Print in compact format
     USD 30.0M
-    >>> print(f"{price:.3c}") # Retain 3 decimals
+    >>> print(f"{price:.3c}")  # Retain 3 decimals
     USD 29.990M
-    >>> print(f"{price:hc}") # Hide currency symbol and use compact format
+    >>> print(f"{price:hc}")  # Hide currency symbol and use compact format
     30.0M
     >>> price = -price
-    >>> print(f"{price:a}") # Use accounting format
+    >>> print(f"{price:a}")  # Use accounting format
     (USD 29,990,005.00)
 
 The format specification are parsed according to this grammar:
@@ -298,10 +299,10 @@ function from the ``formatting`` module.
     formatting.use_backend("babel") # other options are: 'icu' or 'std' (the default)
 
     money = Money.from_major(2600, "USD")
-    print(f"{money}"") # --> $2600
+    print(f"{money}")  # Output: $2600
 
 By default, ``babel`` or ``icu`` use the host environment to determine
-the locale to use, see the following example on how to explictly choose a locale
+the locale to use, see the following example on how to explictly choose a locale:
 
 .. code-block:: python
 

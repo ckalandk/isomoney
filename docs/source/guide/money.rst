@@ -6,7 +6,7 @@ Money
    **Under Construction**
 
    This section is currently under heavy development.
-   For now, please refer to the Quickstart guide or check the source code directly!
+   You can still read this section, but some parts are missing or not fully explained.
 
 The ``Money`` class represents a monetary amount expressed in a specific ISO 4217 currency.
 
@@ -187,6 +187,13 @@ List of all the Minor-Unit operations
 
   returns a new ``Money`` instance with the opposite sign.
 
+* **abs**
+
+.. code-block:: python
+
+    >>> mny = Money.from_major("-299", "USD")
+    >>> print(abs(mny))
+    USD 299.00
 
 Sub-Unit arithmetics
 ^^^^^^^^^^^^^^^^^^^^
@@ -222,14 +229,15 @@ Arithmetic operations work according to this rules
 
 .. code-block:: text
 
-    Money + Money => Mone
-    Money - Money => Money
-    Money + Unrounded => Unrounded
-    Unrounded + Unrounded => Unrounded
-    Money * IntegerFactor => Money
-    Money * DecimalFactor => Unrounded
-    Money / Factor => Unrounded
-    Unrounded * factor => Unrounded
+    Money + Money = Mone
+    Money - Money = Money
+    Money + Unrounded = Unrounded
+    Unrounded + Unrounded = Unrounded
+    Money * IntegerFactor = Money
+    Money * DecimalFactor = Unrounded
+    Money / Factor = Unrounded
+    Money / Money = Decimal
+    Unrounded * factor = Unrounded
 
 Converting an `UnroundedMoney` instance to `Money` via the `round` method,
 must be performed at the very end of the arithmetic pipeline.
@@ -240,9 +248,9 @@ must be performed at the very end of the arithmetic pipeline.
     Decimal might still implicitly round when the amount exceed the Decimal
     default precision. Consider the case where you need to multiply a `Money`
     instance by the Decimal `Decimal(1)/3`, since this number has infinite
-    decimals, it will be rounded to the fit withint the Decimal default precision.
+    decimals, it will be rounded to fit within the Decimal default precision.
     If you need tight control over what rounding mode is used by python Decimal, or
-    completly rejects this implicit rounding, consider wrapping any arithmetics involving
+    completely rejects this implicit rounding, consider wrapping any arithmetics involving
     `UnroundedMoney` objects within a  `decimal.localcontext` context manager. See the example
     below:
 
@@ -342,7 +350,7 @@ Design guarantees
 
 PyCents provides the following guarantees:
 
-* ``Money`` objects are immutable.
+* ``Money``, ``UnroundedMoney`` objects are immutable.
 * Addition and subtraction are mathematically correct; (Money, +) is
   a commutative group.
 * Sub-Unit arithmetic operations (multiplication and division by non-integer
