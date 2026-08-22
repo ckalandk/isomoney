@@ -13,7 +13,7 @@ from .exceptions import CurrencyMismatchError
 from .formatting.protocols import _SupportMoneyOperation
 from .rounding import RoundingMode, as_decimal_rounding
 
-__all__ = ["Money"]
+__all__ = ["Money", "UnroundedMoney", "MoneyLike"]
 
 
 # Type Aliases
@@ -365,6 +365,9 @@ class Money(_SupportMoneyOperation):
             return Decimal(self._amount) / Decimal(factor._amount)
         unrounded = UnroundedMoney(self) / factor
         return unrounded
+
+    def __abs__(self) -> Money:
+        return Money(abs(self._amount), self.currency)
 
     @classmethod
     def sum(
